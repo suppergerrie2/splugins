@@ -93,6 +93,7 @@ static uint32_t gameObjectType_limestoneRockLarge;
 static uint32_t gameObjectType_flint;
 static uint32_t gameObjectType_birchBranch;
 static uint32_t gameObjectType_pineBranch;
+static uint32_t gameObjectType_clay;
 
 #define BIRCH_TYPE_COUNT 6
 static uint32_t gameObjectType_birchTypes[BIRCH_TYPE_COUNT];
@@ -195,6 +196,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_flint = threadState->getGameObjectTypeIndex(threadState, "flint");
 		gameObjectType_birchBranch = threadState->getGameObjectTypeIndex(threadState, "birchBranch");
 		gameObjectType_pineBranch = threadState->getGameObjectTypeIndex(threadState, "pineBranch");
+		gameObjectType_clay = threadState->getGameObjectTypeIndex(threadState, "clay");
 
 		gameObjectType_birchTypes[0] = threadState->getGameObjectTypeIndex(threadState, "birch1");
 		gameObjectType_birchTypes[1] = threadState->getGameObjectTypeIndex(threadState, "birch2");
@@ -646,7 +648,7 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		}
 	}
 
-	bool hasClay = (noiseValueMed > 0.0 && noiseValue < 0.2);
+	bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
 
 	bool isBeach = ((altitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
 	bool isRock = (steepness > rockSteepness + noiseValue * 0.5);
@@ -887,7 +889,7 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	if(isLimestone)
 	{
 		variations[result.variationCount++] = terrainVariation_limestone;
-		if(noiseValueMed > 0.3 && soilRichnessNoiseValue < 0.1 && noiseValue < 0.0)
+		if(noiseValueMed > 0.1 && soilRichnessNoiseValue < 0.2 && noiseValue < 0.1)
 		{
 			variations[result.variationCount++] = terrainVariation_flint;
 		}
@@ -1418,6 +1420,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 4000.0);
 					double rawValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 					double rangedFractionValue = rawValue * rawValue * 8.0;
+
 					if(terrainBaseType == terrainBaseType_riverSand)
 					{
 						rangedFractionValue += 1.0;
@@ -1430,28 +1433,39 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 
 					if(objectCount > 0)
 					{
-						if(objectCount > 0)
+						uint32_t rockType = gameObjectType_rockSmall;
+						for(int i = 0; i < variationCount; i++)
 						{
-							uint32_t rockType = gameObjectType_rockSmall;
-							for(int i = 0; i < variationCount; i++)
+							if(variations[i] == terrainVariation_flint)
 							{
-								if(variations[i] == terrainVariation_flint)
+								int halfCount = objectCount / 2;
+								halfCount = halfCount < 1 ? 1 : halfCount;
+
+								for(int i = 0; i < halfCount; i++)
 								{
-									rockType = gameObjectType_flint;
-									break;
-								}
-								else if(variations[i] == terrainVariation_limestone)
-								{
-									rockType = gameObjectType_limestoneRockSmall;
+									ADD_OBJECT(gameObjectType_flint);
 								}
 							}
-
-							for(int i = 0; i < objectCount; i++)
+							else if(variations[i] == terrainVariation_clay)
 							{
-								ADD_OBJECT(rockType);
+								int halfCount = objectCount / 4;
+								halfCount = halfCount < 1 ? 1 : halfCount;
+
+								for(int i = 0; i < halfCount; i++)
+								{
+									ADD_OBJECT(gameObjectType_clay);
+								}
+							}
+							else if(variations[i] == terrainVariation_limestone)
+							{
+								rockType = gameObjectType_limestoneRockSmall;
 							}
 						}
 
+						for(int i = 0; i < objectCount; i++)
+						{
+							ADD_OBJECT(rockType);
+						}
 					}
 				}
 			}
