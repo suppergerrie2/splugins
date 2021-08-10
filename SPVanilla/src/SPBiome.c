@@ -83,6 +83,7 @@ static uint32_t gameObjectType_tallPine;
 static uint32_t gameObjectType_beetrootPlant;
 static uint32_t gameObjectType_wheatPlant;
 static uint32_t gameObjectType_bananaTree;
+static uint32_t gameObjectType_flaxPlant;
 
 static uint32_t gameObjectType_rock;
 static uint32_t gameObjectType_rockSmall;
@@ -186,6 +187,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_gooseberryBush = threadState->getGameObjectTypeIndex(threadState, "gooseberryBush");
 		gameObjectType_beetrootPlant = threadState->getGameObjectTypeIndex(threadState, "beetrootPlant");
 		gameObjectType_wheatPlant = threadState->getGameObjectTypeIndex(threadState, "wheatPlant");
+		gameObjectType_flaxPlant = threadState->getGameObjectTypeIndex(threadState, "flaxPlant");
 
 		gameObjectType_rock = threadState->getGameObjectTypeIndex(threadState, "rock");
 		gameObjectType_rockSmall = threadState->getGameObjectTypeIndex(threadState, "rockSmall");
@@ -1355,6 +1357,13 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_wheatPlant);
+								}
+							}
+							else if(noiseValue < -0.4)
+							{
+								for(int i = 0; i < objectCount; i++)
+								{
+									ADD_OBJECT(gameObjectType_flaxPlant);
 								}
 							}
 						}
