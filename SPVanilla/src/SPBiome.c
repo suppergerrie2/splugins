@@ -636,7 +636,8 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	}
 
 	bool snowRemoved = false;
-	bool vegetationRemoved = false;
+	bool shouldAddVegetation = true;
+	int soilQuality = 1;
 
 	for(int i = 0; i < modificationCount; i++)
 	{
@@ -646,53 +647,70 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		}
 		else if(modifications[i] == terrainModifcation_vegetationRemoved)
 		{
-			vegetationRemoved = true;
+			shouldAddVegetation = false;
 		}
 	}
 
-	bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
-
-	bool isBeach = ((altitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
-	bool isRock = (steepness > rockSteepness + noiseValue * 0.5);
-	bool isClay = hasClay && !isRock && (steepness > claySteepness + noiseValue * 0.5 - (1.0 - riverDistance) * (1.0 - riverDistance) * 0.5);
-	bool isDesertSand = (soilRichnessNoiseValue < -0.65);
-	bool hasSand = (!hasClay && soilRichnessNoiseValue < -0.45);
-
-	bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
-
-	if(digFillOffset != 0 && !isRock)
-	{
-		if(digFillOffset < (noiseValue * 4) - 2)
-		{
-			isRock = true;
-		}
-		else if(hasClay && !isClay)
-		{
-			if(digFillOffset < (noiseValueMed * 4) - 1)
-			{
-				isClay = true;
-			}
-		}
-		else if(hasSand && !isDesertSand)
-		{
-			if(digFillOffset < (noiseValueMed * 4) - 1)
-			{
-				isDesertSand = true;
-			}
-		}
-	}
-
-
-
-	int soilQuality = 1;
 
 
 	if(fillSurfaceBaseType != 0)
 	{
 		result.surfaceBaseType = fillSurfaceBaseType;
+
+		if(shouldAddVegetation)
+		{
+			if(fillSurfaceBaseType == terrainBaseType_dirt)
+			{
+				soilQuality = 1;
+			}
+			else if(fillSurfaceBaseType == terrainBaseType_richDirt)
+			{
+				soilQuality = 2;
+			}
+			else if(fillSurfaceBaseType == terrainBaseType_poorDirt)
+			{
+				soilQuality = 1;
+			}
+			else
+			{
+				shouldAddVegetation = false;
+			}
+		}
 	}
 	else
 	{
+
+		bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
+
+		bool isBeach = ((altitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
+		bool isRock = (steepness > rockSteepness + noiseValue * 0.5);
+		bool isClay = hasClay && !isRock && (steepness > claySteepness + noiseValue * 0.5 - (1.0 - riverDistance) * (1.0 - riverDistance) * 0.5);
+		bool isDesertSand = (soilRichnessNoiseValue < -0.65);
+		bool hasSand = (!hasClay && soilRichnessNoiseValue < -0.45);
+
+		bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
+
+		if(digFillOffset != 0 && !isRock)
+		{
+			if(digFillOffset < (noiseValue * 4) - 2)
+			{
+				isRock = true;
+			}
+			else if(hasClay && !isClay)
+			{
+				if(digFillOffset < (noiseValueMed * 4) - 1)
+				{
+					isClay = true;
+				}
+			}
+			else if(hasSand && !isDesertSand)
+			{
+				if(digFillOffset < (noiseValueMed * 4) - 1)
+				{
+					isDesertSand = true;
+				}
+			}
+		}
 
 		for(int i = 0; i < tagCount; i++)
 		{
@@ -781,11 +799,28 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 				}
 			}
 		}
+
+		shouldAddVegetation = shouldAddVegetation && (!isRock && !isBeach && !isClay && !isDesertSand);
+
+
+		if(isLimestone)
+		{
+			variations[result.variationCount++] = terrainVariation_limestone;
+			if(noiseValueMed > 0.1 && soilRichnessNoiseValue < 0.2 && noiseValue < 0.1)
+			{
+				variations[result.variationCount++] = terrainVariation_flint;
+			}
+		}
+
+		if(hasClay)
+		{
+			variations[result.variationCount++] = terrainVariation_clay;
+		}
 	}
 
 	uint32_t grassVariation = 0;
 
-	if (!vegetationRemoved && (!isRock && !isBeach && !isClay && !isDesertSand))
+	if (shouldAddVegetation)
 	{
 		for (int i = 0; i < tagCount; i++)
 		{
@@ -887,20 +922,6 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		}
 	}
 
-
-	if(isLimestone)
-	{
-		variations[result.variationCount++] = terrainVariation_limestone;
-		if(noiseValueMed > 0.1 && soilRichnessNoiseValue < 0.2 && noiseValue < 0.1)
-		{
-			variations[result.variationCount++] = terrainVariation_flint;
-		}
-	}
-
-	if(hasClay)
-	{
-		variations[result.variationCount++] = terrainVariation_clay;
-	}
 
 
 	if(grassVariation != 0)
