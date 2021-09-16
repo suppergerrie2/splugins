@@ -20,7 +20,6 @@ static uint16_t biomeTag_polar;
 static uint16_t biomeTag_icecap;
 static uint16_t biomeTag_tundra;
 static uint16_t biomeTag_temperate;
-static uint16_t biomeTag_veryColdWinter;
 static uint16_t biomeTag_heavySnowWinter;
 static uint16_t biomeTag_medSnowWinter;
 static uint16_t biomeTag_lightSnowWinter;
@@ -37,6 +36,19 @@ static uint16_t biomeTag_coniferous;
 static uint16_t biomeTag_birch;
 static uint16_t biomeTag_cliff;
 static uint16_t biomeTag_river;
+
+
+static uint16_t biomeTag_temperatureSummerVeryHot;
+static uint16_t biomeTag_temperatureSummerHot;
+static uint16_t biomeTag_temperatureSummerModerate;
+static uint16_t biomeTag_temperatureSummerCold;
+static uint16_t biomeTag_temperatureSummerVeryCold;
+
+static uint16_t biomeTag_temperatureWinterVeryHot;
+static uint16_t biomeTag_temperatureWinterHot;
+static uint16_t biomeTag_temperatureWinterModerate;
+static uint16_t biomeTag_temperatureWinterCold;
+static uint16_t biomeTag_temperatureWinterVeryCold;
 
 static uint32_t terrainBaseType_rock;
 static uint32_t terrainBaseType_limestone;
@@ -131,7 +143,6 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	biomeTag_icecap = threadState->getBiomeTag(threadState, "icecap");
 	biomeTag_tundra = threadState->getBiomeTag(threadState, "tundra");
 	biomeTag_temperate = threadState->getBiomeTag(threadState, "temperate");
-	biomeTag_veryColdWinter = threadState->getBiomeTag(threadState, "veryColdWinter");
 	biomeTag_heavySnowWinter = threadState->getBiomeTag(threadState, "heavySnowWinter");
 	biomeTag_medSnowWinter = threadState->getBiomeTag(threadState, "medSnowWinter");
 	biomeTag_lightSnowWinter = threadState->getBiomeTag(threadState, "lightSnowWinter");
@@ -148,6 +159,18 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	biomeTag_birch = threadState->getBiomeTag(threadState, "birch");
 	biomeTag_cliff = threadState->getBiomeTag(threadState, "cliff");
 	biomeTag_river = threadState->getBiomeTag(threadState, "river");
+
+	biomeTag_temperatureSummerVeryHot =		threadState->getBiomeTag(threadState, "temperatureSummerVeryHot");
+	biomeTag_temperatureSummerHot =			threadState->getBiomeTag(threadState, "temperatureSummerHot");
+	biomeTag_temperatureSummerModerate =	threadState->getBiomeTag(threadState, "temperatureSummerModerate");
+	biomeTag_temperatureSummerCold =		threadState->getBiomeTag(threadState, "temperatureSummerCold");
+	biomeTag_temperatureSummerVeryCold =	threadState->getBiomeTag(threadState, "temperatureSummerVeryCold");
+
+	biomeTag_temperatureWinterVeryHot =		threadState->getBiomeTag(threadState, "temperatureWinterVeryHot");
+	biomeTag_temperatureWinterHot =			threadState->getBiomeTag(threadState, "temperatureWinterHot");
+	biomeTag_temperatureWinterModerate =	threadState->getBiomeTag(threadState, "temperatureWinterModerate");
+	biomeTag_temperatureWinterCold =		threadState->getBiomeTag(threadState, "temperatureWinterCold");
+	biomeTag_temperatureWinterVeryCold =	threadState->getBiomeTag(threadState, "temperatureWinterVeryCold");
 
 	terrainBaseType_rock							= threadState->getTerrainBaseTypeIndex(threadState, "rock");
 	terrainBaseType_limestone						= threadState->getTerrainBaseTypeIndex(threadState, "limestone");
@@ -245,6 +268,11 @@ float getSoilRichnessNoiseValue(SPBiomeThreadState* threadState, SPVec3 noiseLoc
 	return spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 4) - steepness * 0.5 + (1.0 - pow(riverDistance, 0.3)) * 0.6;
 }
 
+#define VERY_COLD_MAX 0.0f
+#define COLD_MAX 10.0f
+#define VERY_HOT_MIN 33.0f
+#define HOT_MIN 26.0f
+
 void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 	uint16_t* tagsOut,
 	int* tagCountOut,
@@ -276,6 +304,91 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 	double mixFraction = (rainfallSummer - rainfallWinter * 2.3f) * 0.00001;
 	temperatureThreshold = spMix(temperatureThreshold, temperatureThreshold + 200.0f,  mixFraction);
 
+
+	if(temperatureWinter < COLD_MAX)
+	{
+		if(temperatureWinter < VERY_COLD_MAX)
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureWinterVeryCold;
+		}
+		else
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureWinterCold;
+		}
+
+		if(annualRainfall > temperatureThreshold * 2.0)
+		{
+			tagsOut[tagCount++] = biomeTag_heavySnowWinter;
+		}
+		else if(annualRainfall > temperatureThreshold)
+		{
+			tagsOut[tagCount++] = biomeTag_medSnowWinter;
+		}
+		else
+		{
+			tagsOut[tagCount++] = biomeTag_lightSnowWinter;
+		}
+	}
+	else if (temperatureWinter > HOT_MIN)
+	{
+		if(temperatureWinter > VERY_HOT_MIN)
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureWinterVeryHot;
+		}
+		else
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureWinterHot;
+		}
+	}
+	else
+	{
+		tagsOut[tagCount++] = biomeTag_temperatureWinterModerate;
+	}
+
+
+	if(temperatureSummer < COLD_MAX)
+	{
+		if(temperatureSummer < VERY_COLD_MAX)
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureSummerVeryCold;
+		}
+		else
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureSummerCold;
+		}
+
+		if(annualRainfall > temperatureThreshold * 0.5)
+		{
+			if(annualRainfall > temperatureThreshold * 2.0)
+			{
+				tagsOut[tagCount++] = biomeTag_heavySnowSummer;
+			}
+			else if(annualRainfall > temperatureThreshold)
+			{
+				tagsOut[tagCount++] = biomeTag_medSnowSummer;
+			}
+			else
+			{
+				tagsOut[tagCount++] = biomeTag_lightSnowSummer;
+			}
+		}
+	}
+	else if (temperatureSummer > HOT_MIN)
+	{
+		if(temperatureSummer > VERY_HOT_MIN)
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureSummerVeryHot;
+		}
+		else
+		{
+			tagsOut[tagCount++] = biomeTag_temperatureSummerHot;
+		}
+	}
+	else
+	{
+		tagsOut[tagCount++] = biomeTag_temperatureSummerModerate;
+	}
+
 	bool cliff = false;
 	if(steepness > 2.0)
 	{
@@ -293,49 +406,6 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 	{
 		tagsOut[tagCount++] = biomeTag_hot;
 	}
-	else
-	{
-		if(temperatureWinter < -5.0f)
-		{
-			tagsOut[tagCount++] = biomeTag_veryColdWinter;
-		}
-	
-		if(annualRainfall > temperatureThreshold * 0.5)
-		{
-			if(temperatureSummer < 8.0f)
-			{
-				if(annualRainfall > temperatureThreshold * 2.0)
-				{
-					tagsOut[tagCount++] = biomeTag_heavySnowSummer;
-				}
-				else if(annualRainfall > temperatureThreshold)
-				{
-					tagsOut[tagCount++] = biomeTag_medSnowSummer;
-				}
-				else
-				{
-					tagsOut[tagCount++] = biomeTag_lightSnowSummer;
-				}
-			}
-			else if(temperatureWinter < 8.0f)
-			{
-				if(annualRainfall > temperatureThreshold * 2.0)
-				{
-					tagsOut[tagCount++] = biomeTag_heavySnowWinter;
-				}
-				else if(annualRainfall > temperatureThreshold)
-				{
-					tagsOut[tagCount++] = biomeTag_medSnowWinter;
-				}
-				else
-				{
-					tagsOut[tagCount++] = biomeTag_lightSnowWinter;
-				}
-			}
-		}
-	}
-
-
 
 	if (annualRainfallWithRiverAddition < temperatureThreshold) // B
 	{
@@ -1067,7 +1137,7 @@ void getForestInfo(uint16_t* biomeTags,
 			forestInfo->tropical = true;
 		}
 		else if(biomeTags[i] == biomeTag_polar ||
-			biomeTags[i] == biomeTag_veryColdWinter)
+			biomeTags[i] == biomeTag_temperatureWinterVeryCold)
 		{
 			forestInfo->cold = true;
 		}
