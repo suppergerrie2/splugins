@@ -82,6 +82,11 @@ static uint32_t terrainVariation_greenRock;
 static uint32_t terrainVariation_flint;
 static uint32_t terrainVariation_clay;
 
+static uint32_t terrainVariation_shallowWater;
+static uint32_t terrainVariation_deepWater;
+
+
+
 static uint32_t terrainModifcation_snowRemoved;
 static uint32_t terrainModifcation_vegetationRemoved;
 static uint32_t terrainModifcation_vegetationAdded;
@@ -203,6 +208,9 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	terrainVariation_limestone						= threadState->getTerrainVariation(threadState, "limestone");
 	terrainVariation_redRock						= threadState->getTerrainVariation(threadState, "redRock");
 	terrainVariation_greenRock						= threadState->getTerrainVariation(threadState, "greenRock");
+
+	terrainVariation_shallowWater					= threadState->getTerrainVariation(threadState, "shallowWater");
+	terrainVariation_deepWater						= threadState->getTerrainVariation(threadState, "deepWater");
 
 	terrainModifcation_snowRemoved					= threadState->getTerrainModification(threadState, "snowRemoved");
 	terrainModifcation_vegetationRemoved			= threadState->getTerrainModification(threadState, "vegetationRemoved");
@@ -674,6 +682,9 @@ uint32_t getBeachSurfaceType(SurfaceTypeInfo* surfaceTypeInfo, float riverDistan
 	return (noiseValue > 0.1 + (0.4 * digFillOffset) ? terrainBaseType_riverSand : terrainBaseType_beachSand);
 }
 
+static const double SEA_LEVEL = SP_METERS_TO_PRERENDER(-0.1);
+static const double DEEP_SEA_LEVEL = SP_METERS_TO_PRERENDER(-1.1);
+
 SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadState,
 	SPSurfaceTypeResult incomingType,
 	uint16_t* tags,
@@ -685,7 +696,7 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	uint32_t* variations,
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
-	double altitude,
+	double baseAltitude,
 	float steepness,
 	float riverDistance,
 	int seasonIndex)
@@ -714,7 +725,24 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		fillSurfaceBaseType = threadState->getSurfaceBaseTypeForFillObjectType(threadState, fillGameObjectTypeIndex);
 	}
 
-	if(altitude < -0.00000001)
+
+	/*if(baseAltitude + SP_METERS_TO_PRERENDER((double)digFillOffset) < SEA_LEVEL)
+	{
+		if(baseAltitude < DEEP_SEA_LEVEL)
+		{
+			SPSurfaceTypeDefault variationDefaults = threadState->getSurfaceDefaultsForVariationType(threadState, terrainVariation_deepWater);
+			result.pathDifficultyIndex = variationDefaults.pathDifficultyIndex;
+			variations[result.variationCount++] = terrainVariation_deepWater;
+		}
+		else
+		{
+			SPSurfaceTypeDefault variationDefaults = threadState->getSurfaceDefaultsForVariationType(threadState, terrainVariation_shallowWater);
+			result.pathDifficultyIndex = variationDefaults.pathDifficultyIndex;
+			variations[result.variationCount++] = terrainVariation_shallowWater;
+		}
+	}
+
+	if(baseAltitude < SEA_LEVEL)
 	{
 		result.surfaceBaseType = (fillSurfaceBaseType != 0 ? fillSurfaceBaseType : getBeachSurfaceType(&surfaceTypeInfo, riverDistance, noiseValue, digFillOffset));
 
@@ -725,7 +753,7 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		result.pathDifficultyIndex = defaults.pathDifficultyIndex;
 
 		return result;
-	}
+	}*/
 
 	bool snowRemoved = false;
 	bool shouldAddVegetation = true;
@@ -743,6 +771,12 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		}
 	}
 
+	bool underWater = (baseAltitude + SP_METERS_TO_PRERENDER((double)digFillOffset) < SEA_LEVEL);
+	if(underWater)
+	{
+		shouldAddVegetation = false;
+		snowRemoved = true;
+	}
 
 
 	if(fillSurfaceBaseType != 0)
@@ -769,12 +803,16 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 			}
 		}
 	}
+	else if(baseAltitude < SEA_LEVEL)
+	{
+		result.surfaceBaseType = getBeachSurfaceType(&surfaceTypeInfo, riverDistance, noiseValue, digFillOffset);
+	}
 	else
 	{
 
 		bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
 
-		bool isBeach = ((altitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
+		bool isBeach = ((baseAltitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
 		bool isRock = (steepness > rockSteepness + noiseValue * 0.5);
 		bool isClay = hasClay && !isRock && (steepness > claySteepness + noiseValue * 0.5 - (1.0 - riverDistance) * (1.0 - riverDistance) * 0.5);
 		bool isDesertSand = (soilRichnessNoiseValue < -0.65);
@@ -1062,6 +1100,22 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		result.materialIndex = defaults.materialIndex;
 		result.decalTypeIndex = defaults.decalGroupIndex;
 		result.pathDifficultyIndex = defaults.pathDifficultyIndex;
+	}
+
+	if(baseAltitude + SP_METERS_TO_PRERENDER((double)digFillOffset) < SEA_LEVEL)
+	{
+		if(baseAltitude < DEEP_SEA_LEVEL)
+		{
+			SPSurfaceTypeDefault variationDefaults = threadState->getSurfaceDefaultsForVariationType(threadState, terrainVariation_deepWater);
+			result.pathDifficultyIndex = variationDefaults.pathDifficultyIndex;
+			variations[result.variationCount++] = terrainVariation_deepWater;
+		}
+		else
+		{
+			SPSurfaceTypeDefault variationDefaults = threadState->getSurfaceDefaultsForVariationType(threadState, terrainVariation_shallowWater);
+			result.pathDifficultyIndex = variationDefaults.pathDifficultyIndex;
+			variations[result.variationCount++] = terrainVariation_shallowWater;
+		}
 	}
 
 	return result;

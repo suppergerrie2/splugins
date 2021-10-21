@@ -129,7 +129,7 @@ MJ_EXPORT SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* 
 	uint32_t* variations,
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
-	double altitude,
+	double baseAltitude,
 	float steepness,
 	float riverDistance,
 	int seasonIndex);
