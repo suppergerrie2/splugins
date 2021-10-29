@@ -40,6 +40,12 @@ typedef struct SPParticleEmitterState {
 	uint8_t counters[4];
 } SPParticleEmitterState;
 
+typedef struct SPParticleEmitterStateUpdate {
+	SPVec3 p;
+	SPMat3 rot;
+	SPVec4 userData; //can be used by mods
+} SPParticleEmitterStateUpdate;
+
 typedef struct SPParticleState {
 	SPVec3 p;
 	SPVec3 v;
@@ -71,6 +77,11 @@ typedef bool (* SPEmitterWasAddedFunc) (SPParticleThreadState* threadState,
 	SPParticleEmitterState* emitterState,
 	uint32_t localEmitterTypeID);
 
+typedef bool (* SPEmitterWasUpdatedFunc) (SPParticleThreadState* threadState,
+	SPParticleEmitterStateUpdate* updatedState,
+	SPParticleEmitterState* emitterState,
+	uint32_t localEmitterTypeID);
+
 typedef void (* SPUpdateEmitterFunc) (SPParticleThreadState* threadState,
 	SPParticleEmitterState* emitterState,
 	uint32_t localEmitterTypeID,
@@ -92,11 +103,15 @@ MJ_EXPORT bool spEmitterWasAdded(SPParticleThreadState* threadState,
 	SPParticleEmitterState* emitterState,
 	uint32_t localEmitterTypeID);
 
+MJ_EXPORT void spEmitterWasUpdated(SPParticleThreadState* threadState,
+	SPParticleEmitterStateUpdate* updatedState,
+	SPParticleEmitterState* emitterState,
+	uint32_t localEmitterTypeID); //called when Lua updates the pos, rotation, userdata of the emitter. It's up to the mode to apply this updated info to the emitter state.
 
 MJ_EXPORT void spUpdateEmitter(SPParticleThreadState* threadState,
 	SPParticleEmitterState* emitterState,
 	uint32_t localEmitterTypeID,
-	double dt);
+	double dt); //called every tick, for the mod to update the state over time
 
 MJ_EXPORT bool spUpdateParticle(SPParticleThreadState* threadState, 
 	SPParticleState* particleState, 

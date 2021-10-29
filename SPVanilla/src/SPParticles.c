@@ -13,6 +13,7 @@ enum {
 	sp_vanillaEmitterTypeWoodChop,
 	sp_vanillaEmitterTypeFeathers,
 	sp_vanillaEmitterTypeClouds,
+	sp_vanillaEmitterTypeWaterRipples,
 };
 
 enum {
@@ -22,13 +23,14 @@ enum {
 	sp_vanillaRenderGroupSpark,
 	sp_vanillaRenderGroupCloud,
 	sp_vanillaRenderGroupCloudBlended,
+	sp_vanillaRenderGroupWaterRipples,
 };
 
 
 //define emitter types that we wish to override or add. Vanilla functions and functions for mods with earlier order indexes than this one that override the same type, will not get called.
 //Mods with later order indexes than this mod will win, so it's possible that even though you define behavior in the functions here, those functions may not actually get called..
 
-#define EMITTER_TYPES_COUNT 8
+#define EMITTER_TYPES_COUNT 9
 static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] = {
 	{
 		"campfireLarge",
@@ -62,6 +64,10 @@ static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] =
 		"clouds",
 		sp_vanillaEmitterTypeClouds
 	},
+	{
+		"waterRipples",
+		sp_vanillaEmitterTypeWaterRipples
+	},
 };
 
 //define the vertex attributes that the shader will use. In the vanilla mod, all currently take the same, but this could be different for more complex shaders
@@ -73,7 +79,7 @@ static int vertexDescriptionTypes[VERTEX_ATTRIBUTE_COUNT] = {
 };
 
 //define render groups that we wish to use, override or add. To use an existing/predefined render group, either define again or set vertexDescriptionTypeCount to 0
-#define RENDER_GROUP_TYPES_COUNT 6
+#define RENDER_GROUP_TYPES_COUNT 7
 static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{ 
 		"cloud",
@@ -134,7 +140,17 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 		NULL,
 		false,
 		false,
-	}
+	},
+	{
+		"waterRipples",
+		sp_vanillaRenderGroupWaterRipples,
+		VERTEX_ATTRIBUTE_COUNT,
+		vertexDescriptionTypes,
+		"img/particles.png",
+		NULL,
+		false,
+		false,
+	},
 };
 
 int spGetEmitterTypesCount()
@@ -196,6 +212,7 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 	case sp_vanillaEmitterTypeCampfireSmall:
 	case sp_vanillaEmitterTypeTorchLarge:
 	case sp_vanillaEmitterTypeTorchSmall:
+	case sp_vanillaEmitterTypeWaterRipples:
 	{
 	
 	}
@@ -532,6 +549,18 @@ void emitFireParticle(SPParticleThreadState* threadState,
 
 static const double fixedTimeStep = 1.0/60.0;
 
+
+
+void spEmitterWasUpdated(SPParticleThreadState* threadState,
+	SPParticleEmitterStateUpdate* updatedState,
+	SPParticleEmitterState* emitterState,
+	uint32_t localEmitterTypeID)
+{
+	emitterState->p = updatedState->p;
+	emitterState->rot = updatedState->rot;
+	emitterState->userData = updatedState->userData;
+}
+
 void spUpdateEmitter(SPParticleThreadState* threadState,
 	SPParticleEmitterState* emitterState,
 	uint32_t localEmitterTypeID,
@@ -547,6 +576,43 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 		emitterState->timeAccumulatorB += fixedTimeStep;
 		switch(localEmitterTypeID)
 		{
+		case sp_vanillaEmitterTypeWaterRipples:
+		{
+			if(emitterState->counters[0] == 0)
+			{
+				double posLength = spVec3Length(emitterState->p);
+				SPVec3 normalizedPos = spVec3Div(emitterState->p, posLength);
+				SPVec3 randVec = spRandGetVec3(spRand);
+				SPVec3 randPosVec = spVec3Mul(randVec, SP_METERS_TO_PRERENDER(0.2));
+
+				SPParticleState state;
+
+				SPVec3 zeroVec = {0,0,0};
+
+				SPVec3 posVec = spVec3Add(normalizedPos, randPosVec);
+
+				state.p = spVec3Normalize(posVec);
+				state.v = zeroVec;
+				state.particleTextureType = 3;
+				state.lifeLeft = 1.0;
+				state.scale = 0.2 + spRandGetValue(spRand) * 0.2;
+				state.randomValueA = spRandGetValue(spRand);
+				state.randomValueB = spRandGetValue(spRand);
+				state.gravity = zeroVec;
+
+				(*threadState->addParticle)(threadState->particleManager,
+					emitterState,
+					sp_vanillaRenderGroupWaterRipples,
+					&state);
+
+				SPVec3 lookup = {(normalizedPos.x + 1.2) * 99999.9, (normalizedPos.y * 4.5 + normalizedPos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+				double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
+				emitterState->counters[0] = 1 + (uint8_t)(8 * (1.0 - noiseValue));
+			}
+			emitterState->counters[0]--;
+		}
+		break;
+
 		case sp_vanillaEmitterTypeCampfireLarge:
 		case sp_vanillaEmitterTypeCampfireMedium:
 		case sp_vanillaEmitterTypeCampfireSmall:
@@ -779,6 +845,10 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupSpark)
 	{
 		lifeLeftMultiplier = (1.5 - particleState->randomValueB * 1.0);
+	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupWaterRipples)
+	{
+		lifeLeftMultiplier = 0.5;
 	}
 
 	double lifeLeft = particleState->lifeLeft - dt * lifeLeftMultiplier;
