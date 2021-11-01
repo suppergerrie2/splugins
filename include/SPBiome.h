@@ -66,12 +66,12 @@ typedef void (* SPBiomeGetTagsForPointFunc) (SPBiomeThreadState* threadState,
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
 	double altitude,
-	float steepness,
-	float riverDistance,
-	float temperatureSummer, 
-	float temperatureWinter, 
-	float rainfallSummer, 
-	float rainfallWinter);
+	double steepness,
+	double riverDistance,
+	double temperatureSummer, 
+	double temperatureWinter, 
+	double rainfallSummer, 
+	double rainfallWinter);
 typedef SPSurfaceTypeResult (*SPBiomeGetSurfaceTypeForPointFunc) (SPBiomeThreadState* threadState, 
 	SPSurfaceTypeResult incomingType,
 	uint16_t* tags,
@@ -84,8 +84,8 @@ typedef SPSurfaceTypeResult (*SPBiomeGetSurfaceTypeForPointFunc) (SPBiomeThreadS
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
 	double altitude,
-	float steepness,
-	float riverDistance,
+	double steepness,
+	double riverDistance,
 	int seasonIndex);
 typedef int (*SPBiomeGetTransientGameObjectTypesForFaceSubdivisionFunc) (SPBiomeThreadState* threadState,
 	int incomingTypeCount,
@@ -97,11 +97,8 @@ typedef int (*SPBiomeGetTransientGameObjectTypesForFaceSubdivisionFunc) (SPBiome
 	uint64_t faceUniqueID, 
 	int level, 
 	double altitude, 
-	float steepness,
-	uint32_t terrainBaseType, 
-	uint32_t* variations,
-	int variationCount,
-	float riverDistance);
+	double steepness,
+	double riverDistance);
 
 MJ_EXPORT void spBiomeInit(SPBiomeThreadState* threadState);
 
@@ -111,12 +108,12 @@ MJ_EXPORT void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
 	double altitude,
-	float steepness,
-	float riverDistance,
-	float temperatureSummer, 
-	float temperatureWinter, 
-	float rainfallSummer, 
-	float rainfallWinter);
+	double steepness,
+	double riverDistance,
+	double temperatureSummer, 
+	double temperatureWinter, 
+	double rainfallSummer, 
+	double rainfallWinter);
 
 MJ_EXPORT SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadState, 
 	SPSurfaceTypeResult incomingType,
@@ -130,8 +127,8 @@ MJ_EXPORT SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* 
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
 	double baseAltitude,
-	float steepness,
-	float riverDistance,
+	double steepness,
+	double riverDistance,
 	int seasonIndex);
 
 MJ_EXPORT int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* threadState,
@@ -144,11 +141,8 @@ MJ_EXPORT int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThread
 	uint64_t faceUniqueID, 
 	int level, 
 	double altitude, 
-	float steepness,
-	uint32_t terrainBaseType, 
-	uint32_t* variations,
-	int variationCount,
-	float riverDistance);
+	double steepness,
+	double riverDistance);
 
 
 #endif

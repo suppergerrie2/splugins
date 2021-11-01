@@ -270,7 +270,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	}
 }
 
-float getSoilRichnessNoiseValue(SPBiomeThreadState* threadState, SPVec3 noiseLoc, float steepness, float riverDistance)
+double getSoilRichnessNoiseValue(SPBiomeThreadState* threadState, SPVec3 noiseLoc, double steepness, double riverDistance)
 {
 	SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 20000.0);
 	return spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 4) - steepness * 0.5 + (1.0 - pow(riverDistance, 0.3)) * 0.6;
@@ -287,18 +287,18 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 	SPVec3 pointNormal,
 	SPVec3 noiseLoc,
 	double altitude,
-	float steepness,
-	float riverDistance,
-	float temperatureSummer,
-	float temperatureWinter,
-	float rainfallSummer,
-	float rainfallWinter)
+	double steepness,
+	double riverDistance,
+	double temperatureSummer,
+	double temperatureWinter,
+	double rainfallSummer,
+	double rainfallWinter)
 {
 	int tagCount = *tagCountOut;
 
-	float annualRainfall = rainfallSummer + rainfallWinter;
-	float averageTemp = (temperatureSummer + temperatureWinter) * 0.5f;
-	float temperatureThreshold = averageTemp * 20.0f;
+	double annualRainfall = rainfallSummer + rainfallWinter;
+	double averageTemp = (temperatureSummer + temperatureWinter) * 0.5f;
+	double temperatureThreshold = averageTemp * 20.0f;
 
 	SPVec3 scaledNoiseLocC = spVec3Mul(noiseLoc, 802.0);
 	double noiseValueC = spNoiseGet(threadState->spNoise1, scaledNoiseLocC, 2);
@@ -446,7 +446,7 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 		{
 			tagsOut[tagCount++] = biomeTag_tropical;
 
-			float driestMonth = (float)spMin(rainfallSummer, rainfallWinter) / 6.0f;
+			double driestMonth = spMin(rainfallSummer, rainfallWinter) / 6.0f;
 			double treeDensityOffset = 0.0;
 			if (driestMonth > 60.0f)
 			{
@@ -587,7 +587,7 @@ typedef struct SurfaceTypeInfo {
 	int snowDepth;
 } SurfaceTypeInfo;
 
-void getSurfaceTypeInfo(uint16_t* biomeTags, int tagCount, int seasonIndex, SurfaceTypeInfo* surfaceTypeInfo, float steepness, double noiseValue)
+void getSurfaceTypeInfo(uint16_t* biomeTags, int tagCount, int seasonIndex, SurfaceTypeInfo* surfaceTypeInfo, double steepness, double noiseValue)
 {
 	for(int i = 0; i < tagCount; i++)
 	{
@@ -665,7 +665,7 @@ void getSurfaceTypeInfo(uint16_t* biomeTags, int tagCount, int seasonIndex, Surf
 	}
 }
 
-uint32_t getBeachSurfaceType(SurfaceTypeInfo* surfaceTypeInfo, float riverDistance, float noiseValue, int16_t digFillOffset)
+uint32_t getBeachSurfaceType(SurfaceTypeInfo* surfaceTypeInfo, double riverDistance, double noiseValue, int16_t digFillOffset)
 {
 	if(surfaceTypeInfo->river)
 	{
@@ -697,8 +697,8 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	SPVec3 pointNormal, 
 	SPVec3 noiseLoc, 
 	double baseAltitude,
-	float steepness,
-	float riverDistance,
+	double steepness,
+	double riverDistance,
 	int seasonIndex)
 {
 	SurfaceTypeInfo surfaceTypeInfo;
@@ -809,7 +809,6 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	}
 	else
 	{
-
 		bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
 
 		bool isBeach = ((baseAltitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
@@ -1146,7 +1145,7 @@ typedef struct ForestInfo {
 
 void getForestInfo(uint16_t* biomeTags, 
 	int tagCount, 
-	float steepness,
+	double steepness,
 	ForestInfo* forestInfo)
 {
 	for(int i = 0; i < tagCount; i++)
@@ -1263,11 +1262,8 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 	uint64_t faceUniqueID, 
 	int level, 
 	double altitude, 
-	float steepness,
-	uint32_t terrainBaseType, 
-	uint32_t* variations,
-	int variationCount,
-	float riverDistance)
+	double steepness,
+	double riverDistance)
 {
 	int addedCount = incomingTypeCount;
 
@@ -1412,7 +1408,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 400.0);
 					double rawValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 					double rangedFractionValue = rawValue * rawValue * 8.0;
-					if(terrainBaseType == terrainBaseType_riverSand)
+					if(riverDistance < (rawValue * 0.01 + 0.005))
 					{
 						rangedFractionValue += 1.0;
 					}
@@ -1425,20 +1421,28 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					if(addBoulderCount > 0)
 					{
 						uint32_t rockType = gameObjectType_rockLarge;
-						for(int i = 0; i < variationCount; i++)
+
+
+						SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 45999.0);
+						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+						SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
+						double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+
+						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
+						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
+						bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
+
+						if(isLimestone)
 						{
-							if(variations[i] == terrainVariation_limestone)
-							{
-								rockType = gameObjectType_limestoneRockLarge;
-							}
-							else if(variations[i] == terrainVariation_redRock)
-							{
-								rockType = gameObjectType_redRockLarge;
-							}
-							else if(variations[i] == terrainVariation_greenRock)
-							{
-								rockType = gameObjectType_greenRockLarge;
-							}
+							rockType = gameObjectType_limestoneRockLarge;
+						}
+						else if(isRedRock)
+						{
+							rockType = gameObjectType_redRockLarge;
+						}
+						else if(isGreenRock)
+						{
+							rockType = gameObjectType_greenRockLarge;
 						}
 
 						for(int i = 0; i < addBoulderCount; i++)
@@ -1560,7 +1564,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 400.0);
 					double rawValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 					double rangedFractionValue = rawValue * rawValue * 8.0;
-					if(terrainBaseType == terrainBaseType_riverSand)
+					if(riverDistance < (rawValue * 0.01 + 0.005))
 					{
 						rangedFractionValue += 1.0;
 					}
@@ -1572,20 +1576,28 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					if(objectCount > 0)
 					{
 						uint32_t rockType = gameObjectType_rock;
-						for(int i = 0; i < variationCount; i++)
+
+
+						SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 45999.0);
+						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+						SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
+						double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+
+						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
+						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
+						bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
+
+						if(isLimestone)
 						{
-							if(variations[i] == terrainVariation_limestone)
-							{
-								rockType = gameObjectType_limestoneRock;
-							}
-							if(variations[i] == terrainVariation_redRock)
-							{
-								rockType = gameObjectType_redRock;
-							}
-							if(variations[i] == terrainVariation_greenRock)
-							{
-								rockType = gameObjectType_greenRock;
-							}
+							rockType = gameObjectType_limestoneRock;
+						}
+						else if(isRedRock)
+						{
+							rockType = terrainVariation_redRock;
+						}
+						else if(isGreenRock)
+						{
+							rockType = terrainVariation_greenRock;
 						}
 
 						for(int i = 0; i < objectCount; i++)
@@ -1617,7 +1629,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					double rawValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 					double rangedFractionValue = rawValue * rawValue * 8.0;
 
-					if(terrainBaseType == terrainBaseType_riverSand)
+					if(riverDistance < (rawValue * 0.01 + 0.005))
 					{
 						rangedFractionValue += 1.0;
 					}
@@ -1630,9 +1642,33 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					if(objectCount > 0)
 					{
 						uint32_t rockType = gameObjectType_rockSmall;
-						for(int i = 0; i < variationCount; i++)
+
+						SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 45999.0);
+						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+						SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
+						double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+
+						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
+						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
+						bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
+						bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
+
+
+						if(hasClay)
 						{
-							if(variations[i] == terrainVariation_flint)
+							int halfCount = objectCount / 4;
+							halfCount = halfCount < 1 ? 1 : halfCount;
+
+							for(int i = 0; i < halfCount; i++)
+							{
+								ADD_OBJECT(gameObjectType_clay);
+							}
+						}
+
+						if(isLimestone)
+						{
+							double soilRichnessNoiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance);
+							if(noiseValueMed > 0.1 && soilRichnessNoiseValue < 0.2 && noiseValue < 0.1)
 							{
 								int halfCount = objectCount / 2;
 								halfCount = halfCount < 1 ? 1 : halfCount;
@@ -1642,28 +1678,16 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 									ADD_OBJECT(gameObjectType_flint);
 								}
 							}
-							else if(variations[i] == terrainVariation_clay)
-							{
-								int halfCount = objectCount / 4;
-								halfCount = halfCount < 1 ? 1 : halfCount;
 
-								for(int i = 0; i < halfCount; i++)
-								{
-									ADD_OBJECT(gameObjectType_clay);
-								}
-							}
-							else if(variations[i] == terrainVariation_limestone)
-							{
-								rockType = gameObjectType_limestoneRockSmall;
-							}
-							else if(variations[i] == terrainVariation_redRock)
-							{
-								rockType = gameObjectType_redRockSmall;
-							}
-							else if(variations[i] == terrainVariation_greenRock)
-							{
-								rockType = gameObjectType_greenRockSmall;
-							}
+							rockType = gameObjectType_limestoneRockSmall;
+						}
+						else if(isRedRock)
+						{
+							rockType = gameObjectType_redRockSmall;
+						}
+						else if(isGreenRock)
+						{
+							rockType = gameObjectType_greenRockSmall;
 						}
 
 						for(int i = 0; i < objectCount; i++)
