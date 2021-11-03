@@ -707,6 +707,9 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 45999.0);
 	double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 
+	SPVec3 scaledNoiseLocSmallScale = spVec3Mul(noiseLoc, 834567.0);
+	double noiseValueSmall = spNoiseGet(threadState->spNoise1, scaledNoiseLocSmallScale, 2);
+
 	getSurfaceTypeInfo(tags, tagCount, seasonIndex, &surfaceTypeInfo, steepness, noiseValue);
 
 
@@ -809,7 +812,7 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	}
 	else
 	{
-		bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
+		bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2 + noiseValueSmall * 0.5);
 
 		bool isBeach = ((baseAltitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
 		bool isRock = (steepness > rockSteepness + noiseValue * 0.5);
@@ -817,9 +820,9 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		bool isDesertSand = (soilRichnessNoiseValue < -0.65);
 		bool hasSand = (!hasClay && soilRichnessNoiseValue < -0.45);
 
-		bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
-		bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
-		bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
+		bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2 + noiseValueSmall * 0.5);
+		bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2 + noiseValueSmall * 0.5);
+		bool isGreenRock = (noiseValueMed < -0.3 && noiseValue < -0.3 + noiseValueSmall * 0.5);
 
 		if(digFillOffset != 0 && !isRock)
 		{
@@ -1427,10 +1430,12 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 						SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
 						double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+						SPVec3 scaledNoiseLocSmallScale = spVec3Mul(noiseLoc, 834567.0);
+						double noiseValueSmall = spNoiseGet(threadState->spNoise1, scaledNoiseLocSmallScale, 2);
 
-						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
-						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
-						bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
+						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2 + noiseValueSmall * 0.5);
+						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2 + noiseValueSmall * 0.5);
+						bool isGreenRock = (noiseValueMed < -0.3 && noiseValue < -0.3 + noiseValueSmall * 0.5);
 
 						if(isLimestone)
 						{
@@ -1582,10 +1587,12 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 						SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
 						double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+						SPVec3 scaledNoiseLocSmallScale = spVec3Mul(noiseLoc, 834567.0);
+						double noiseValueSmall = spNoiseGet(threadState->spNoise1, scaledNoiseLocSmallScale, 2);
 
-						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
-						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
-						bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
+						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2 + noiseValueSmall * 0.5);
+						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2 + noiseValueSmall * 0.5);
+						bool isGreenRock = (noiseValueMed < -0.3 && noiseValue < -0.3 + noiseValueSmall * 0.5);
 
 						if(isLimestone)
 						{
@@ -1647,11 +1654,13 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 						SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
 						double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+						SPVec3 scaledNoiseLocSmallScale = spVec3Mul(noiseLoc, 834567.0);
+						double noiseValueSmall = spNoiseGet(threadState->spNoise1, scaledNoiseLocSmallScale, 2);
 
-						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2);
-						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2);
-						bool isGreenRock = (noiseValueMed < -0.2 && noiseValue < -0.2);
-						bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2);
+						bool isLimestone = (noiseValueMed > 0.2 && noiseValue < 0.2 + noiseValueSmall * 0.5);
+						bool isRedRock = (noiseValueMed < -0.2 && noiseValue > 0.2 + noiseValueSmall * 0.5);
+						bool isGreenRock = (noiseValueMed < -0.3 && noiseValue < -0.3 + noiseValueSmall * 0.5);
+						bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2 + noiseValueSmall * 0.5);
 
 
 						if(hasClay)
