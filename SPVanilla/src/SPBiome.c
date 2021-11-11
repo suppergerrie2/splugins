@@ -65,6 +65,7 @@ static uint32_t terrainBaseType_poorDirt;
 static uint32_t terrainBaseType_clay;
 
 static uint32_t terrainVariation_snow;
+static uint32_t terrainVariation_grassSnow;
 static uint32_t terrainVariation_temperateGrass;
 static uint32_t terrainVariation_temperateGrassPlentiful;
 static uint32_t terrainVariation_temperateGrassWinter;
@@ -194,6 +195,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	terrainBaseType_clay							= threadState->getTerrainBaseTypeIndex(threadState, "clay");
 													
 	terrainVariation_snow							= threadState->getTerrainVariation(threadState, "snow");
+	terrainVariation_grassSnow							= threadState->getTerrainVariation(threadState, "grassSnow");
 	terrainVariation_temperateGrass					= threadState->getTerrainVariation(threadState, "temperateGrass");
 	terrainVariation_temperateGrassPlentiful		= threadState->getTerrainVariation(threadState, "temperateGrassPlentiful");
 	terrainVariation_temperateGrassWinter			= threadState->getTerrainVariation(threadState, "temperateGrassWinter");
@@ -1067,7 +1069,12 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 	if(grassVariation != 0)
 	{
 		variations[result.variationCount++] = grassVariation;
+		if(hasSnow)
+		{
+			variations[result.variationCount++] = terrainVariation_grassSnow;
+		}
 	}
+	
 	if(hasSnow)
 	{
 		variations[result.variationCount++] = terrainVariation_snow;
@@ -1077,7 +1084,7 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 
 	if(grassVariation != 0 || hasSnow)
 	{
-		SPSurfaceTypeDefault variationDefaults = threadState->getSurfaceDefaultsForVariationType(threadState, (hasSnow ? terrainVariation_snow : grassVariation));
+		SPSurfaceTypeDefault variationDefaults = threadState->getSurfaceDefaultsForVariationType(threadState, (hasSnow ? (grassVariation != 0 ? terrainVariation_grassSnow : terrainVariation_snow) : grassVariation));
 		if(variationDefaults.materialIndex != 0)
 		{
 			result.materialIndex = variationDefaults.materialIndex;
