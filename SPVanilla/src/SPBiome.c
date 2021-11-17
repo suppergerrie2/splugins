@@ -124,6 +124,8 @@ static uint32_t gameObjectType_pineBranch;
 static uint32_t gameObjectType_clay;
 
 static uint32_t gameObjectType_alpacaWoolSkin;
+static uint32_t gameObjectType_mammothWoolSkin;
+static uint32_t gameObjectType_bone;
 
 #define BIRCH_TYPE_COUNT 6
 static uint32_t gameObjectType_birchTypes[BIRCH_TYPE_COUNT];
@@ -273,6 +275,8 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_smallPine = threadState->getGameObjectTypeIndex(threadState, "pine4");
 
 		gameObjectType_alpacaWoolSkin = threadState->getGameObjectTypeIndex(threadState, "alpacaWoolSkin");
+		gameObjectType_mammothWoolSkin = threadState->getGameObjectTypeIndex(threadState, "mammothWoolskin");
+		gameObjectType_bone = threadState->getGameObjectTypeIndex(threadState, "bone");
 	}
 }
 
@@ -1568,10 +1572,26 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						}
 					}
 
-					int bonesCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 32) - 30;
-					for(int i = 0; i < bonesCount; i++)
+					int skinCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 32) - 30;
+					if(skinCount > 0)
 					{
-						ADD_OBJECT(gameObjectType_alpacaWoolSkin);
+						uint32_t skinType = gameObjectType_alpacaWoolSkin;
+						uint32_t randomSkinValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3966, 2);
+						if(randomSkinValue == 0)
+						{
+							skinType = gameObjectType_mammothWoolSkin;
+							skinCount = skinCount + 1;
+						}
+						for(int i = 0; i < skinCount; i++)
+						{
+							ADD_OBJECT(skinType);
+						}
+
+						int boneCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 934, 4);
+						for(int i = 0; i < boneCount; i++)
+						{
+							ADD_OBJECT(gameObjectType_bone);
+						}
 					}
 				}
 				else if(level == SP_SUBDIVISIONS - 2)
