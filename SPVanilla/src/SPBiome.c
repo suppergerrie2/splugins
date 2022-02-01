@@ -1362,7 +1362,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 610.0);
 						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 
-						if(noiseValue > 0.3)
+						if(noiseValue > 0.4)
 						{
 							uint32_t treeObjectType = gameObjectType_appleTree;
 
@@ -1370,18 +1370,18 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							{
 								treeObjectType = gameObjectType_bananaTree;
 							}
-							int objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 16) - 12;
+							int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 18) - 6);
 							for(int i = 0; i < objectCount; i++)
 							{
 
 								ADD_OBJECT(treeObjectType);
 							}
 						}
-						else if(noiseValue < -0.3)
+						else if(noiseValue < -0.4)
 						{
 							if(!forestInfo.cold)
 							{
-								int objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 16) - 12;
+								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 18) - 6);
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_orangeTree);
@@ -1389,7 +1389,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							}
 							else
 							{
-								int objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 16) - 12;
+								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 18) - 6);
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_peachTree);
@@ -1510,11 +1510,11 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						{
 							if(forestInfo.forestDensity > 2)
 							{
-								objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 235432, 8) - 4;
+								objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 235432, 12) - 4;
 							}
 							else
 							{
-								objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 235432, 32) - 28;
+								objectCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 235432, 36) - 28;
 							}
 						}
 
@@ -1523,7 +1523,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 129.0);
 							double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 
-							if(noiseValue > 0.4)
+							if(noiseValue > 0.5)
 							{
 								if(temperate)
 								{
@@ -1533,7 +1533,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 									}
 								}
 							}
-							else if(noiseValue < -0.4)
+							else if(noiseValue < -0.5)
 							{
 								for(int i = 0; i < objectCount; i++)
 								{
@@ -1543,35 +1543,40 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							SPVec3 offset = {0.2,0.1,0.3};
 							scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offset), 124.2);
 							noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-							if(noiseValue > 0.4)
+							if(noiseValue > 0.5)
 							{
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_gooseberryBush);
 								}
 							}
-							else if(noiseValue < -0.4)
+							else if(noiseValue < -0.5)
 							{
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_beetrootPlant);
 								}
 							}
-							SPVec3 offsetB = {0.6,0.22,0.5};
-							scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
-							noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-							if(noiseValue > 0.4)
+
+							int rarerObjectCount = objectCount / 3;
+							if(rarerObjectCount > 0)
 							{
-								for(int i = 0; i < objectCount; i++)
+								SPVec3 offsetB = {0.6,0.22,0.5};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
+								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+								if(noiseValue > 0.5)
 								{
-									ADD_OBJECT(gameObjectType_wheatPlant);
+									for(int i = 0; i < rarerObjectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_wheatPlant);
+									}
 								}
-							}
-							else if(noiseValue < -0.4)
-							{
-								for(int i = 0; i < objectCount; i++)
+								else if(noiseValue < -0.5)
 								{
-									ADD_OBJECT(gameObjectType_flaxPlant);
+									for(int i = 0; i < rarerObjectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_flaxPlant);
+									}
 								}
 							}
 						}
