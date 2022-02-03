@@ -472,25 +472,29 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 				treeDensityOffset = - 0.4;
 			}
 
-			double noiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance) + treeDensityOffset;
-			if(noiseValue > -0.2)
+			if(!cliff)
 			{
-				if(noiseValue > 0.7)
+				double noiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance) + treeDensityOffset;
+				if(noiseValue > -0.2)
 				{
-					tagsOut[tagCount++] = biomeTag_denseForest;
-				}
-				else if(noiseValue > 0.4)
-				{
-					tagsOut[tagCount++] = biomeTag_mediumForest;
+					if(noiseValue > 0.7)
+					{
+						tagsOut[tagCount++] = biomeTag_denseForest;
+					}
+					else if(noiseValue > 0.4)
+					{
+						tagsOut[tagCount++] = biomeTag_mediumForest;
+					}
+					else
+					{
+						tagsOut[tagCount++] = biomeTag_sparseForest;
+					}
 				}
 				else
 				{
-					tagsOut[tagCount++] = biomeTag_sparseForest;
+					tagsOut[tagCount++] = biomeTag_verySparseForest;
 				}
-			}
-			else
-			{
-				tagsOut[tagCount++] = biomeTag_verySparseForest;
+				tagsOut[tagCount++] = biomeTag_coniferous; //todo add tropical trees
 			}
 		}
 		else
@@ -1406,21 +1410,19 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						case 0:
 							break;
 						case 1:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) - 14;
+							treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) == 1 ? 1 : 0);
 							break;
 						case 2:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 3;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 5;
 							break;
 						case 3:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 1;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 4);
 							break;
 						case 4:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 16;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 7) + 2;
 							break;
 
 						}
-
-						treeCount /= 4;
 
 						for(int i = 0; i < treeCount; i++)
 						{
