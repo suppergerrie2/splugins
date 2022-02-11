@@ -1560,7 +1560,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								}
 							}
 
-							int rarerObjectCount = objectCount / 3;
+							int rarerObjectCount = objectCount;// / 3;
 							if(rarerObjectCount > 0)
 							{
 								SPVec3 offsetB = {0.6,0.22,0.5};
