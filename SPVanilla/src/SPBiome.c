@@ -1481,7 +1481,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 				}
 				else if(level == SP_SUBDIVISIONS - 3)
 				{
-					bool temperate = false;
+					/*bool temperate = false;
 					bool steppe = false;
 
 					for(int i = 0; i < tagCount; i++)
@@ -1494,9 +1494,9 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						{
 							steppe = true;
 						}
-					}
+					}*/
 
-					if(temperate || steppe)
+					//if(temperate || steppe)
 					{
 
 						ForestInfo forestInfo;
@@ -1527,7 +1527,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 
 							if(noiseValue > 0.5)
 							{
-								if(temperate)
+								//if(temperate)
 								{
 									for(int i = 0; i < objectCount; i++)
 									{
