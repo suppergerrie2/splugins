@@ -14,7 +14,6 @@ static uint16_t biomeTag_desert;
 static uint16_t biomeTag_steppe;
 static uint16_t biomeTag_rainforest;
 static uint16_t biomeTag_tropical;
-static uint16_t biomeTag_monsoon;
 static uint16_t biomeTag_savanna;
 static uint16_t biomeTag_polar;
 static uint16_t biomeTag_icecap;
@@ -34,6 +33,7 @@ static uint16_t biomeTag_mediumForest;
 static uint16_t biomeTag_denseForest;
 static uint16_t biomeTag_coniferous;
 static uint16_t biomeTag_birch;
+static uint16_t biomeTag_bamboo;
 static uint16_t biomeTag_cliff;
 static uint16_t biomeTag_river;
 
@@ -74,7 +74,7 @@ static uint32_t terrainVariation_mediterraneanGrass;
 static uint32_t terrainVariation_mediterraneanGrassPlentiful;
 static uint32_t terrainVariation_steppeGrass;
 static uint32_t terrainVariation_tropicalRainforestGrass;
-static uint32_t terrainVariation_monsoonGrass;
+static uint32_t terrainVariation_tropicalRainforestGrassPlentiful;
 static uint32_t terrainVariation_savannaGrass;
 static uint32_t terrainVariation_tundraGrass;
 static uint32_t terrainVariation_limestone;
@@ -104,6 +104,7 @@ static uint32_t gameObjectType_tallPine;
 static uint32_t gameObjectType_beetrootPlant;
 static uint32_t gameObjectType_wheatPlant;
 static uint32_t gameObjectType_bananaTree;
+static uint32_t gameObjectType_coconutTree;
 static uint32_t gameObjectType_flaxPlant;
 
 static uint32_t gameObjectType_rock;
@@ -136,7 +137,11 @@ static uint32_t gameObjectType_medPineTypes[MED_PINE_TYPE_COUNT];
 #define WILLOW_TYPE_COUNT 2
 static uint32_t gameObjectType_willowTypes[WILLOW_TYPE_COUNT];
 
+#define BAMBOO_TYPE_COUNT 1
+static uint32_t gameObjectType_bambooTypes[BAMBOO_TYPE_COUNT];
+
 static uint32_t gameObjectType_smallPine;
+static uint32_t gameObjectType_smallBamboo;
 
 void spBiomeInit(SPBiomeThreadState* threadState)
 {
@@ -147,7 +152,6 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	biomeTag_steppe = threadState->getBiomeTag(threadState, "steppe");
 	biomeTag_rainforest = threadState->getBiomeTag(threadState, "rainforest");
 	biomeTag_tropical = threadState->getBiomeTag(threadState, "tropical");
-	biomeTag_monsoon = threadState->getBiomeTag(threadState, "monsoon");
 	biomeTag_savanna = threadState->getBiomeTag(threadState, "savanna");
 	biomeTag_polar = threadState->getBiomeTag(threadState, "polar");
 	biomeTag_icecap = threadState->getBiomeTag(threadState, "icecap");
@@ -169,6 +173,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	biomeTag_birch = threadState->getBiomeTag(threadState, "birch");
 	biomeTag_cliff = threadState->getBiomeTag(threadState, "cliff");
 	biomeTag_river = threadState->getBiomeTag(threadState, "river");
+	biomeTag_bamboo = threadState->getBiomeTag(threadState, "bamboo");
 
 	biomeTag_temperatureSummerVeryHot =		threadState->getBiomeTag(threadState, "temperatureSummerVeryHot");
 	biomeTag_temperatureSummerHot =			threadState->getBiomeTag(threadState, "temperatureSummerHot");
@@ -182,46 +187,46 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 	biomeTag_temperatureWinterCold =		threadState->getBiomeTag(threadState, "temperatureWinterCold");
 	biomeTag_temperatureWinterVeryCold =	threadState->getBiomeTag(threadState, "temperatureWinterVeryCold");
 
-	terrainBaseType_rock							= threadState->getTerrainBaseTypeIndex(threadState, "rock");
-	terrainBaseType_limestone						= threadState->getTerrainBaseTypeIndex(threadState, "limestone");
-	terrainBaseType_beachSand						= threadState->getTerrainBaseTypeIndex(threadState, "beachSand");
-	terrainBaseType_riverSand					    = threadState->getTerrainBaseTypeIndex(threadState, "riverSand");
-	terrainBaseType_desertSand						= threadState->getTerrainBaseTypeIndex(threadState, "desertSand");
-	terrainBaseType_ice								= threadState->getTerrainBaseTypeIndex(threadState, "ice");
-	terrainBaseType_desertRedSand					= threadState->getTerrainBaseTypeIndex(threadState, "desertRedSand");
-	terrainBaseType_redRock							= threadState->getTerrainBaseTypeIndex(threadState, "redRock");
-	terrainBaseType_greenRock							= threadState->getTerrainBaseTypeIndex(threadState, "greenRock");
-	terrainBaseType_dirt							= threadState->getTerrainBaseTypeIndex(threadState, "dirt");
-	terrainBaseType_richDirt						= threadState->getTerrainBaseTypeIndex(threadState, "richDirt");
-	terrainBaseType_poorDirt						= threadState->getTerrainBaseTypeIndex(threadState, "poorDirt");
-	terrainBaseType_clay							= threadState->getTerrainBaseTypeIndex(threadState, "clay");
-													
-	terrainVariation_snow							= threadState->getTerrainVariation(threadState, "snow");
-	terrainVariation_grassSnow							= threadState->getTerrainVariation(threadState, "grassSnow");
-	terrainVariation_temperateGrass					= threadState->getTerrainVariation(threadState, "temperateGrass");
-	terrainVariation_temperateGrassPlentiful		= threadState->getTerrainVariation(threadState, "temperateGrassPlentiful");
-	terrainVariation_temperateGrassWinter			= threadState->getTerrainVariation(threadState, "temperateGrassWinter");
-	terrainVariation_taigaGrass						= threadState->getTerrainVariation(threadState, "taigaGrass");
-	terrainVariation_mediterraneanGrass				= threadState->getTerrainVariation(threadState, "mediterraneanGrass");
-	terrainVariation_mediterraneanGrassPlentiful	= threadState->getTerrainVariation(threadState, "mediterraneanGrassPlentiful");	
-	terrainVariation_steppeGrass					= threadState->getTerrainVariation(threadState, "steppeGrass");
-	terrainVariation_tropicalRainforestGrass		= threadState->getTerrainVariation(threadState, "tropicalRainforestGrass");
-	terrainVariation_monsoonGrass					= threadState->getTerrainVariation(threadState, "monsoonGrass");
-	terrainVariation_savannaGrass					= threadState->getTerrainVariation(threadState, "savannaGrass");
-	terrainVariation_tundraGrass					= threadState->getTerrainVariation(threadState, "tundraGrass");
-	terrainVariation_flint							= threadState->getTerrainVariation(threadState, "flint");
-	terrainVariation_clay							= threadState->getTerrainVariation(threadState, "clay");
-	terrainVariation_limestone						= threadState->getTerrainVariation(threadState, "limestone");
-	terrainVariation_redRock						= threadState->getTerrainVariation(threadState, "redRock");
-	terrainVariation_greenRock						= threadState->getTerrainVariation(threadState, "greenRock");
+	terrainBaseType_rock									= threadState->getTerrainBaseTypeIndex(threadState, "rock");
+	terrainBaseType_limestone								= threadState->getTerrainBaseTypeIndex(threadState, "limestone");
+	terrainBaseType_beachSand								= threadState->getTerrainBaseTypeIndex(threadState, "beachSand");
+	terrainBaseType_riverSand								= threadState->getTerrainBaseTypeIndex(threadState, "riverSand");
+	terrainBaseType_desertSand								= threadState->getTerrainBaseTypeIndex(threadState, "desertSand");
+	terrainBaseType_ice										= threadState->getTerrainBaseTypeIndex(threadState, "ice");
+	terrainBaseType_desertRedSand							= threadState->getTerrainBaseTypeIndex(threadState, "desertRedSand");
+	terrainBaseType_redRock									= threadState->getTerrainBaseTypeIndex(threadState, "redRock");
+	terrainBaseType_greenRock								= threadState->getTerrainBaseTypeIndex(threadState, "greenRock");
+	terrainBaseType_dirt									= threadState->getTerrainBaseTypeIndex(threadState, "dirt");
+	terrainBaseType_richDirt								= threadState->getTerrainBaseTypeIndex(threadState, "richDirt");
+	terrainBaseType_poorDirt								= threadState->getTerrainBaseTypeIndex(threadState, "poorDirt");
+	terrainBaseType_clay									= threadState->getTerrainBaseTypeIndex(threadState, "clay");
+															
+	terrainVariation_snow									= threadState->getTerrainVariation(threadState, "snow");
+	terrainVariation_grassSnow								= threadState->getTerrainVariation(threadState, "grassSnow");
+	terrainVariation_temperateGrass							= threadState->getTerrainVariation(threadState, "temperateGrass");
+	terrainVariation_temperateGrassPlentiful				= threadState->getTerrainVariation(threadState, "temperateGrassPlentiful");
+	terrainVariation_temperateGrassWinter					= threadState->getTerrainVariation(threadState, "temperateGrassWinter");
+	terrainVariation_taigaGrass								= threadState->getTerrainVariation(threadState, "taigaGrass");
+	terrainVariation_mediterraneanGrass						= threadState->getTerrainVariation(threadState, "mediterraneanGrass");
+	terrainVariation_mediterraneanGrassPlentiful			= threadState->getTerrainVariation(threadState, "mediterraneanGrassPlentiful");	
+	terrainVariation_steppeGrass							= threadState->getTerrainVariation(threadState, "steppeGrass");
+	terrainVariation_tropicalRainforestGrass				= threadState->getTerrainVariation(threadState, "tropicalRainforestGrass");
+	terrainVariation_tropicalRainforestGrassPlentiful		= threadState->getTerrainVariation(threadState, "tropicalRainforestGrassPlentiful");
+	terrainVariation_savannaGrass							= threadState->getTerrainVariation(threadState, "savannaGrass");
+	terrainVariation_tundraGrass							= threadState->getTerrainVariation(threadState, "tundraGrass");
+	terrainVariation_flint									= threadState->getTerrainVariation(threadState, "flint");
+	terrainVariation_clay									= threadState->getTerrainVariation(threadState, "clay");
+	terrainVariation_limestone								= threadState->getTerrainVariation(threadState, "limestone");
+	terrainVariation_redRock								= threadState->getTerrainVariation(threadState, "redRock");
+	terrainVariation_greenRock								= threadState->getTerrainVariation(threadState, "greenRock");
 
-	terrainVariation_shallowWater					= threadState->getTerrainVariation(threadState, "shallowWater");
-	terrainVariation_deepWater						= threadState->getTerrainVariation(threadState, "deepWater");
+	terrainVariation_shallowWater							= threadState->getTerrainVariation(threadState, "shallowWater");
+	terrainVariation_deepWater								= threadState->getTerrainVariation(threadState, "deepWater");
 
-	terrainModifcation_snowRemoved					= threadState->getTerrainModification(threadState, "snowRemoved");
-	terrainModifcation_vegetationRemoved			= threadState->getTerrainModification(threadState, "vegetationRemoved");
-	terrainModifcation_vegetationAdded				= threadState->getTerrainModification(threadState, "vegetationAdded");
-	terrainModifcation_preventGrassAndSnow			= threadState->getTerrainModification(threadState, "preventGrassAndSnow");
+	terrainModifcation_snowRemoved							= threadState->getTerrainModification(threadState, "snowRemoved");
+	terrainModifcation_vegetationRemoved					= threadState->getTerrainModification(threadState, "vegetationRemoved");
+	terrainModifcation_vegetationAdded						= threadState->getTerrainModification(threadState, "vegetationAdded");
+	terrainModifcation_preventGrassAndSnow					= threadState->getTerrainModification(threadState, "preventGrassAndSnow");
 
 	if(threadState->getGameObjectTypeIndex) //this function isn't set where game object types aren't required eg. in the initial world creation screen
 	{
@@ -230,6 +235,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_peachTree = threadState->getGameObjectTypeIndex(threadState, "peachTree");
 		gameObjectType_aspen3 = threadState->getGameObjectTypeIndex(threadState, "aspen3");
 		gameObjectType_bananaTree = threadState->getGameObjectTypeIndex(threadState, "bananaTree");
+		gameObjectType_coconutTree = threadState->getGameObjectTypeIndex(threadState, "coconutTree");
 
 		gameObjectType_sunflower = threadState->getGameObjectTypeIndex(threadState, "sunflower");
 		gameObjectType_raspberryBush = threadState->getGameObjectTypeIndex(threadState, "raspberryBush");
@@ -273,6 +279,9 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_medPineTypes[1] = threadState->getGameObjectTypeIndex(threadState, "pine3");
 		gameObjectType_tallPine = threadState->getGameObjectTypeIndex(threadState, "pine2");
 		gameObjectType_smallPine = threadState->getGameObjectTypeIndex(threadState, "pine4");
+
+		gameObjectType_bambooTypes[0] = threadState->getGameObjectTypeIndex(threadState, "bamboo1");
+		gameObjectType_smallBamboo = threadState->getGameObjectTypeIndex(threadState, "bamboo2");
 
 		gameObjectType_alpacaWoolskin = threadState->getGameObjectTypeIndex(threadState, "alpacaWoolskin");
 		gameObjectType_mammothWoolskin = threadState->getGameObjectTypeIndex(threadState, "mammothWoolskin");
@@ -461,10 +470,7 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 			if (driestMonth > 60.0f)
 			{
 				tagsOut[tagCount++] = biomeTag_rainforest;
-			}
-			else if (driestMonth > (100.0f - (annualRainfall / 25.0f)))
-			{
-				tagsOut[tagCount++] = biomeTag_monsoon;
+				treeDensityOffset = 0.4;
 			}
 			else
 			{
@@ -494,7 +500,8 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 				{
 					tagsOut[tagCount++] = biomeTag_verySparseForest;
 				}
-				tagsOut[tagCount++] = biomeTag_coniferous; //todo add tropical trees
+				tagsOut[tagCount++] = biomeTag_coniferous;
+				tagsOut[tagCount++] = biomeTag_bamboo;
 			}
 		}
 		else
@@ -865,11 +872,17 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 			}
 		}
 
+		bool isRainforest = false;
+
 		for(int i = 0; i < tagCount; i++)
 		{
 			if(tags[i] == biomeTag_cliff)
 			{
 				isRock = true;
+			}
+			else if(tags[i] == biomeTag_rainforest)
+			{
+				isRainforest = true;
 			}
 		}
 
@@ -906,10 +919,18 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 		{
 			if(soilRichnessNoiseValue < -0.3)
 			{
-				result.surfaceBaseType = terrainBaseType_poorDirt;
-				soilQuality = 0;
+				if(isRainforest)
+				{
+					result.surfaceBaseType = terrainBaseType_dirt;
+					soilQuality = 1;
+				}
+				else
+				{
+					result.surfaceBaseType = terrainBaseType_poorDirt;
+					soilQuality = 0;
+				}
 			}
-			else if(soilRichnessNoiseValue > 0.4)
+			else if(isRainforest || soilRichnessNoiseValue > 0.4)
 			{
 				result.surfaceBaseType = terrainBaseType_richDirt;
 				soilQuality = 2;
@@ -996,11 +1017,14 @@ SPSurfaceTypeResult spBiomeGetSurfaceTypeForPoint(SPBiomeThreadState* threadStat
 			}
 			else if (tags[i] == biomeTag_rainforest)
 			{
-				grassVariation = terrainVariation_tropicalRainforestGrass;
-			}
-			if (tags[i] == biomeTag_monsoon)
-			{
-				grassVariation = terrainVariation_monsoonGrass;
+				if(soilQuality == 2)
+				{
+					grassVariation = terrainVariation_tropicalRainforestGrassPlentiful;
+				}
+				else
+				{
+					grassVariation = terrainVariation_tropicalRainforestGrass;
+				}
 			}
 			if (tags[i] == biomeTag_savanna)
 			{
@@ -1166,6 +1190,7 @@ typedef struct ForestInfo {
 	bool cold;
 	bool river;
 	bool tropical;
+	bool bamboo;
 
 } ForestInfo;
 
@@ -1182,6 +1207,7 @@ void getForestInfo(uint16_t* biomeTags,
 			forestInfo->forestDensity = 0;
 			forestInfo->coniferous = false;
 			forestInfo->birch = false;
+			forestInfo->bamboo = false;
 			return;
 		}
 		else if(biomeTags[i] == biomeTag_river)
@@ -1211,6 +1237,10 @@ void getForestInfo(uint16_t* biomeTags,
 		else if(biomeTags[i] == biomeTag_birch)
 		{
 			forestInfo->birch = true;
+		}
+		else if(biomeTags[i] == biomeTag_bamboo)
+		{
+			forestInfo->bamboo = true;
 		}
 		else if(biomeTags[i] == biomeTag_tropical)
 		{
@@ -1250,6 +1280,11 @@ uint32_t getWillowType(uint64_t faceUniqueID, int i)
 	return gameObjectType_willowTypes[spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3434 + i, WILLOW_TYPE_COUNT)];
 }
 
+uint32_t getBambooType(uint64_t faceUniqueID, int i)
+{
+	return gameObjectType_bambooTypes[spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3434 + i, BAMBOO_TYPE_COUNT)];
+}
+
 uint32_t getTreeType(uint64_t faceUniqueID, int i, ForestInfo* forestInfo)
 {
 
@@ -1261,13 +1296,20 @@ uint32_t getTreeType(uint64_t faceUniqueID, int i, ForestInfo* forestInfo)
 		}
 	}
 
-	if(forestInfo->birch && forestInfo->coniferous)
+	if(forestInfo->coniferous)
 	{
-		if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 54634 + i, 2) == 1)
+		if(forestInfo->birch)
+		{
+			if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 54634 + i, 2) == 1)
+			{
+				return getPineType(faceUniqueID, i);
+			}
+			return getBirchType(faceUniqueID, i);
+		}
+		else
 		{
 			return getPineType(faceUniqueID, i);
 		}
-		return getBirchType(faceUniqueID, i);
 	}
 
 	if(forestInfo->birch)
@@ -1385,7 +1427,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						{
 							if(!forestInfo.cold)
 							{
-								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 18) - 6);
+								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9822, 18) - 6);
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_orangeTree);
@@ -1393,10 +1435,25 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							}
 							else
 							{
-								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 18) - 6);
+								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 232, 18) - 6);
 								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_peachTree);
+								}
+							}
+						}
+
+						if(forestInfo.tropical)
+						{
+							SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 762.0);
+							double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+
+							if(noiseValue > 0.4)
+							{
+								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 15234, 18) - 6);
+								for(int i = 0; i < objectCount; i++)
+								{
+									ADD_OBJECT(gameObjectType_coconutTree);
 								}
 							}
 						}
@@ -1427,6 +1484,17 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						for(int i = 0; i < treeCount; i++)
 						{
 							ADD_OBJECT(gameObjectType_smallPine);
+						}
+					}
+
+
+					if(forestInfo.bamboo && forestInfo.forestDensity > 0 && spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 236604, 6) == 0)
+					{
+						treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 91333, 7) + forestInfo.forestDensity + 2;
+
+						for(int i = 0; i < treeCount; i++)
+						{
+							ADD_OBJECT(getBambooType(faceUniqueID, i));
 						}
 					}
 
@@ -1507,6 +1575,17 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							&forestInfo);
 
 						int objectCount = 0;
+
+
+						if(forestInfo.bamboo && forestInfo.forestDensity > 0 && spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 236604, 6) == 0)
+						{
+							int treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 8137, 14) + forestInfo.forestDensity) / 2;
+
+							for(int i = 0; i < treeCount; i++)
+							{
+								ADD_OBJECT(gameObjectType_smallBamboo);
+							}
+						}
 
 						if(forestInfo.forestDensity > 0)
 						{
