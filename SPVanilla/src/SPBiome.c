@@ -96,15 +96,18 @@ static uint32_t terrainModifcation_preventGrassAndSnow;
 static uint32_t gameObjectType_appleTree;
 static uint32_t gameObjectType_orangeTree;
 static uint32_t gameObjectType_peachTree;
+static uint32_t gameObjectType_tallPine;
+static uint32_t gameObjectType_pineBig1;
 static uint32_t gameObjectType_aspen3;
+
+static uint32_t gameObjectType_bananaTree;
+static uint32_t gameObjectType_coconutTree;
+
 static uint32_t gameObjectType_sunflower;
 static uint32_t gameObjectType_raspberryBush;
 static uint32_t gameObjectType_gooseberryBush;
-static uint32_t gameObjectType_tallPine;
 static uint32_t gameObjectType_beetrootPlant;
 static uint32_t gameObjectType_wheatPlant;
-static uint32_t gameObjectType_bananaTree;
-static uint32_t gameObjectType_coconutTree;
 static uint32_t gameObjectType_flaxPlant;
 
 static uint32_t gameObjectType_rock;
@@ -280,6 +283,8 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_tallPine = threadState->getGameObjectTypeIndex(threadState, "pine2");
 		gameObjectType_smallPine = threadState->getGameObjectTypeIndex(threadState, "pine4");
 
+		gameObjectType_pineBig1 = threadState->getGameObjectTypeIndex(threadState, "pineBig1");
+
 		gameObjectType_bambooTypes[0] = threadState->getGameObjectTypeIndex(threadState, "bamboo1");
 		gameObjectType_smallBamboo = threadState->getGameObjectTypeIndex(threadState, "bamboo2");
 
@@ -330,6 +335,15 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 
 	double mixFraction = (rainfallSummer - rainfallWinter * 2.3f) * 0.00001;
 	temperatureThreshold = spMix(temperatureThreshold, temperatureThreshold + 200.0f,  mixFraction);
+
+
+	SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 45999.0);
+	double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+
+	SPVec3 scaledNoiseLocLargeScale = spVec3Mul(noiseLoc, 8073.0);
+	double noiseValueLarge = spNoiseGet(threadState->spNoise1, scaledNoiseLocLargeScale, 2);
+
+	bool isBeach = ((altitude + noiseValue * 0.00000005 + noiseValueLarge * 0.0000005) < 0.0000001);
 
 
 	if(temperatureWinter < COLD_MAX)
@@ -446,7 +460,7 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 		{
 			tagsOut[tagCount++] = biomeTag_steppe;
 
-			if(averageTemp < 18.0f && !cliff)
+			if(averageTemp < 18.0f && !cliff && !isBeach)
 			{
 				SPVec3 scaledNoiseLoc = spVec3Mul(noiseLoc, 8000.0);
 				double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
@@ -478,7 +492,7 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 				treeDensityOffset = - 0.4;
 			}
 
-			if(!cliff)
+			if(!cliff && !isBeach)
 			{
 				double noiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance) + treeDensityOffset;
 				if(noiseValue > -0.2)
@@ -516,7 +530,7 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 				tagsOut[tagCount++] = biomeTag_polar;
 				tagsOut[tagCount++] = biomeTag_tundra;
 
-				if(!cliff)
+				if(!cliff && !isBeach)
 				{
 					double noiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance);
 					if(noiseValue > 0.0)
@@ -548,7 +562,7 @@ void spBiomeGetTagsForPoint(SPBiomeThreadState* threadState,
 					tagsOut[tagCount++] = biomeTag_dryWinter;
 				}
 
-				if(!cliff)
+				if(!cliff && !isBeach)
 				{
 					double noiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance);
 					if(noiseValue > -0.2)
@@ -1263,6 +1277,16 @@ if(addedCount >= BIOME_MAX_GAME_OBJECT_COUNT_PER_SUBDIVISION)\
 
 uint32_t getPineType(uint64_t faceUniqueID, int i)
 {
+	int randomValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 22245 + i, 12);
+
+	/*if(randomValue == 3)
+	{
+		return gameObjectType_pineBig1;
+	}*/
+	if(randomValue == 1)
+	{
+		return gameObjectType_tallPine;
+	}
 	if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 22245 + i, 12) == 1)
 	{
 		return gameObjectType_tallPine;
@@ -1340,11 +1364,28 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 	{
 		if(altitude > -0.0000001)
 		{
-			if(level >= SP_SUBDIVISIONS - 5)
+			if(level >= SP_SUBDIVISIONS - 6)
 			{
 				SPVec3 noiseLookup = spVec3Mul(noiseLoc, 999.0);
 
-				if(level == SP_SUBDIVISIONS - 5)
+				if(level == SP_SUBDIVISIONS - 6)
+				{
+					ForestInfo forestInfo;
+					memset(&forestInfo, 0, sizeof(forestInfo));
+					getForestInfo(biomeTags,
+						tagCount,
+						steepness,
+						&forestInfo);
+
+					if(forestInfo.coniferous && forestInfo.forestDensity >= 3)
+					{
+						if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 60638, 16) == 3)
+						{
+							ADD_OBJECT(gameObjectType_pineBig1);
+						}
+					}
+				}
+				else if(level == SP_SUBDIVISIONS - 5)
 				{
 					ForestInfo forestInfo;
 					memset(&forestInfo, 0, sizeof(forestInfo));
