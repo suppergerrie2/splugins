@@ -98,7 +98,8 @@ static uint32_t gameObjectType_orangeTree;
 static uint32_t gameObjectType_peachTree;
 static uint32_t gameObjectType_tallPine;
 static uint32_t gameObjectType_pineBig1;
-static uint32_t gameObjectType_aspen3;
+static uint32_t gameObjectType_aspenBig1;
+//static uint32_t gameObjectType_aspen3;
 
 static uint32_t gameObjectType_bananaTree;
 static uint32_t gameObjectType_coconutTree;
@@ -131,8 +132,11 @@ static uint32_t gameObjectType_alpacaWoolskin;
 static uint32_t gameObjectType_mammothWoolskin;
 static uint32_t gameObjectType_bone;
 
-#define BIRCH_TYPE_COUNT 6
+#define BIRCH_TYPE_COUNT 4
 static uint32_t gameObjectType_birchTypes[BIRCH_TYPE_COUNT];
+
+#define ASPEN_TYPE_COUNT 3
+static uint32_t gameObjectType_aspenTypes[ASPEN_TYPE_COUNT];
 
 #define MED_PINE_TYPE_COUNT 2
 static uint32_t gameObjectType_medPineTypes[MED_PINE_TYPE_COUNT];
@@ -236,7 +240,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_appleTree = threadState->getGameObjectTypeIndex(threadState, "appleTree");
 		gameObjectType_orangeTree = threadState->getGameObjectTypeIndex(threadState, "orangeTree");
 		gameObjectType_peachTree = threadState->getGameObjectTypeIndex(threadState, "peachTree");
-		gameObjectType_aspen3 = threadState->getGameObjectTypeIndex(threadState, "aspen3");
+		//gameObjectType_aspen3 = threadState->getGameObjectTypeIndex(threadState, "aspen3");
 		gameObjectType_bananaTree = threadState->getGameObjectTypeIndex(threadState, "bananaTree");
 		gameObjectType_coconutTree = threadState->getGameObjectTypeIndex(threadState, "coconutTree");
 
@@ -272,8 +276,10 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_birchTypes[1] = threadState->getGameObjectTypeIndex(threadState, "birch2");
 		gameObjectType_birchTypes[2] = threadState->getGameObjectTypeIndex(threadState, "birch3");
 		gameObjectType_birchTypes[3] = threadState->getGameObjectTypeIndex(threadState, "birch4");
-		gameObjectType_birchTypes[4] = threadState->getGameObjectTypeIndex(threadState, "aspen1");
-		gameObjectType_birchTypes[5] = threadState->getGameObjectTypeIndex(threadState, "aspen2");
+
+		gameObjectType_aspenTypes[0] = threadState->getGameObjectTypeIndex(threadState, "aspen1");
+		gameObjectType_aspenTypes[1] = threadState->getGameObjectTypeIndex(threadState, "aspen2");
+		gameObjectType_aspenTypes[2] = threadState->getGameObjectTypeIndex(threadState, "aspen3");
 
 		gameObjectType_willowTypes[0] = threadState->getGameObjectTypeIndex(threadState, "willow1");
 		gameObjectType_willowTypes[1] = threadState->getGameObjectTypeIndex(threadState, "willow2");
@@ -284,6 +290,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_smallPine = threadState->getGameObjectTypeIndex(threadState, "pine4");
 
 		gameObjectType_pineBig1 = threadState->getGameObjectTypeIndex(threadState, "pineBig1");
+		gameObjectType_aspenBig1 = threadState->getGameObjectTypeIndex(threadState, "aspenBig1");
 
 		gameObjectType_bambooTypes[0] = threadState->getGameObjectTypeIndex(threadState, "bamboo1");
 		gameObjectType_smallBamboo = threadState->getGameObjectTypeIndex(threadState, "bamboo2");
@@ -1299,6 +1306,11 @@ uint32_t getBirchType(uint64_t faceUniqueID, int i)
 	return gameObjectType_birchTypes[spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3434 + i, BIRCH_TYPE_COUNT)];
 }
 
+uint32_t getAspenType(uint64_t faceUniqueID, int i)
+{
+	return gameObjectType_aspenTypes[spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3434 + i, ASPEN_TYPE_COUNT)];
+}
+
 uint32_t getWillowType(uint64_t faceUniqueID, int i)
 {
 	return gameObjectType_willowTypes[spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3434 + i, WILLOW_TYPE_COUNT)];
@@ -1309,7 +1321,7 @@ uint32_t getBambooType(uint64_t faceUniqueID, int i)
 	return gameObjectType_bambooTypes[spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3434 + i, BAMBOO_TYPE_COUNT)];
 }
 
-uint32_t getTreeType(uint64_t faceUniqueID, int i, ForestInfo* forestInfo)
+uint32_t getTreeType(uint64_t faceUniqueID, int i, ForestInfo* forestInfo, double noiseValueMed)
 {
 
 	if(forestInfo->river)
@@ -1324,9 +1336,14 @@ uint32_t getTreeType(uint64_t faceUniqueID, int i, ForestInfo* forestInfo)
 	{
 		if(forestInfo->birch)
 		{
-			if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 54634 + i, 2) == 1)
+			int randomValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 54634 + i, 2);
+			if(randomValue == 1)
 			{
 				return getPineType(faceUniqueID, i);
+			}
+			else if(noiseValueMed > 0.2)
+			{
+				return getAspenType(faceUniqueID, i);
 			}
 			return getBirchType(faceUniqueID, i);
 		}
@@ -1338,6 +1355,10 @@ uint32_t getTreeType(uint64_t faceUniqueID, int i, ForestInfo* forestInfo)
 
 	if(forestInfo->birch)
 	{
+		if(noiseValueMed > 0.2)
+		{
+			return getAspenType(faceUniqueID, i);
+		}
 		return getBirchType(faceUniqueID, i);
 	}
 
@@ -1364,11 +1385,11 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 	{
 		if(altitude > -0.0000001)
 		{
-			if(level >= SP_SUBDIVISIONS - 6)
+			if(level >= SP_SUBDIVISIONS - 7)
 			{
 				SPVec3 noiseLookup = spVec3Mul(noiseLoc, 999.0);
 
-				if(level == SP_SUBDIVISIONS - 6)
+				if(level == SP_SUBDIVISIONS - 7)
 				{
 					ForestInfo forestInfo;
 					memset(&forestInfo, 0, sizeof(forestInfo));
@@ -1377,15 +1398,32 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						steepness,
 						&forestInfo);
 
-					if(forestInfo.coniferous && forestInfo.forestDensity >= 3)
+					if(forestInfo.forestDensity >= 3)
 					{
-						if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 60638, 16) == 3)
+						if(forestInfo.coniferous)
 						{
-							ADD_OBJECT(gameObjectType_pineBig1);
+							if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 60638, 16) == 3)
+							{
+								ADD_OBJECT(gameObjectType_pineBig1);
+							}
+						}
+
+						if(forestInfo.birch)
+						{
+							if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 95935, 8) == 4)
+							{
+
+								SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
+								double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
+								if(noiseValueMed > 0.2)
+								{
+									ADD_OBJECT(gameObjectType_aspenBig1);
+								}
+							}
 						}
 					}
 				}
-				else if(level == SP_SUBDIVISIONS - 5)
+				else if(level == SP_SUBDIVISIONS - 6)
 				{
 					ForestInfo forestInfo;
 					memset(&forestInfo, 0, sizeof(forestInfo));
@@ -1406,30 +1444,34 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) - 14;
 							break;
 						case 2:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 3;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 2;
 							break;
 						case 3:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 1;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 4;
 							break;
 						case 4:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 16;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 30;
 							break;
 
 						}
 
 						if(treeCount > 0)
 						{
-							if(forestInfo.birch)
+							/*if(forestInfo.birch)
 							{
 								if(spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 100 / treeCount) == 1)
 								{
 									ADD_OBJECT(gameObjectType_aspen3);
 								}
-							}
+							}*/
+
+
+							SPVec3 scaledNoiseMedScale = spVec3Mul(noiseLoc, 92273.0);
+							double noiseValueMed = spNoiseGet(threadState->spNoise1, scaledNoiseMedScale, 2);
 
 							for(int i = 0; i < treeCount; i++)
 							{
-								ADD_OBJECT(getTreeType(faceUniqueID, i, &forestInfo));
+								ADD_OBJECT(getTreeType(faceUniqueID, i, &forestInfo, noiseValueMed));
 							}
 						}
 					}
@@ -1449,7 +1491,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 610.0);
 						double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 
-						if(noiseValue > 0.4)
+						if(noiseValue > 0.5)
 						{
 							uint32_t treeObjectType = gameObjectType_appleTree;
 
@@ -1464,7 +1506,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								ADD_OBJECT(treeObjectType);
 							}
 						}
-						else if(noiseValue < -0.4)
+						else if(noiseValue < -0.5)
 						{
 							if(!forestInfo.cold)
 							{
@@ -1489,7 +1531,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 762.0);
 							double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 
-							if(noiseValue > 0.4)
+							if(noiseValue > 0.5)
 							{
 								int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 15234, 18) - 6);
 								for(int i = 0; i < objectCount; i++)
@@ -1511,13 +1553,13 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) == 1 ? 1 : 0);
 							break;
 						case 2:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 5;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 6;
 							break;
 						case 3:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 4);
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 3);
 							break;
 						case 4:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 7) + 2;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 6) + 1;
 							break;
 
 						}
@@ -1618,7 +1660,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						int objectCount = 0;
 
 
-						if(forestInfo.bamboo && forestInfo.forestDensity > 0 && spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 236604, 6) == 0)
+						if(forestInfo.bamboo && forestInfo.forestDensity > 0 && spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 236604, 12) == 0)
 						{
 							int treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 8137, 14) + forestInfo.forestDensity) / 2;
 
@@ -1704,7 +1746,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						}
 					}
 
-					int skinCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 32) - 30;
+					int skinCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 62) - 60;
 					if(skinCount > 0)
 					{
 						uint32_t skinType = gameObjectType_alpacaWoolskin;
@@ -1763,6 +1805,21 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						bool isRedRock = getIsRedRock();
 						bool isGreenRock = getIsGreenRock();
 
+
+						bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2 + noiseValueSmall * 0.5);
+
+
+						if(hasClay)
+						{
+							int halfCount = objectCount / 4;
+							halfCount = halfCount < 1 ? 1 : halfCount;
+
+							for(int i = 0; i < halfCount; i++)
+							{
+								ADD_OBJECT(gameObjectType_clay);
+							}
+						}
+
 						if(isLimestone)
 						{
 							rockType = gameObjectType_limestoneRock;
@@ -1813,7 +1870,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 					{
 						rangedFractionValue += 0.5;
 					}
-					int objectCount = ((int)spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 5243, 40)) - 38 + 2 * rangedFractionValue;
+					int objectCount = (((int)spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 5243, 40)) - 38 + 2 * rangedFractionValue) / 2;
 
 					if(objectCount > 0)
 					{
@@ -1830,29 +1887,13 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						bool isRedRock = getIsRedRock();
 						bool isGreenRock = getIsGreenRock();
 
-						bool hasClay = (noiseValueMed > 0.1 && noiseValue < 0.2 + noiseValueSmall * 0.5);
-
-
-						if(hasClay)
-						{
-							int halfCount = objectCount / 4;
-							halfCount = halfCount < 1 ? 1 : halfCount;
-
-							for(int i = 0; i < halfCount; i++)
-							{
-								ADD_OBJECT(gameObjectType_clay);
-							}
-						}
-
 						if(isLimestone)
 						{
 							double soilRichnessNoiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance);
 							if(noiseValueMed > 0.1 && soilRichnessNoiseValue < 0.2 && noiseValue < 0.1)
 							{
-								int halfCount = objectCount / 2;
-								halfCount = halfCount < 1 ? 1 : halfCount;
 
-								for(int i = 0; i < halfCount; i++)
+								for(int i = 0; i < objectCount; i++)
 								{
 									ADD_OBJECT(gameObjectType_flint);
 								}
