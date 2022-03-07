@@ -124,9 +124,12 @@ static uint32_t gameObjectType_limestoneRock;
 static uint32_t gameObjectType_limestoneRockSmall;
 static uint32_t gameObjectType_limestoneRockLarge;
 static uint32_t gameObjectType_flint;
+static uint32_t gameObjectType_clay;
+
 static uint32_t gameObjectType_birchBranch;
 static uint32_t gameObjectType_pineBranch;
-static uint32_t gameObjectType_clay;
+static uint32_t gameObjectType_willowBranch;
+static uint32_t gameObjectType_bambooBranch;
 
 static uint32_t gameObjectType_alpacaWoolskin;
 static uint32_t gameObjectType_mammothWoolskin;
@@ -270,6 +273,8 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_flint = threadState->getGameObjectTypeIndex(threadState, "flint");
 		gameObjectType_birchBranch = threadState->getGameObjectTypeIndex(threadState, "birchBranch");
 		gameObjectType_pineBranch = threadState->getGameObjectTypeIndex(threadState, "pineBranch");
+		gameObjectType_willowBranch = threadState->getGameObjectTypeIndex(threadState, "willowBranch");
+		gameObjectType_bambooBranch = threadState->getGameObjectTypeIndex(threadState, "bambooBranch");
 		gameObjectType_clay = threadState->getGameObjectTypeIndex(threadState, "clay");
 
 		gameObjectType_birchTypes[0] = threadState->getGameObjectTypeIndex(threadState, "birch1");
@@ -1841,16 +1846,44 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 
 					if(forestInfo.forestDensity > 0)
 					{
-						int denominator = 100 / (forestInfo.forestDensity * forestInfo.forestDensity);
-						denominator = spMax(denominator, 2);
-						int roll = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 235432, denominator);
-						if(forestInfo.coniferous && roll == 0)
+						int denominatorMultiplier = 0;
+						if(forestInfo.coniferous)
 						{
-							ADD_OBJECT(gameObjectType_pineBranch);
+							denominatorMultiplier++;
 						}
-						if(forestInfo.birch && roll == 1)
+						if(forestInfo.birch)
 						{
-							ADD_OBJECT(gameObjectType_birchBranch);
+							denominatorMultiplier++;
+						}
+						if(forestInfo.bamboo)
+						{
+							denominatorMultiplier++;
+						}
+						denominatorMultiplier = spMax(denominatorMultiplier, 1);
+
+						int denominator = (200 / (forestInfo.forestDensity * forestInfo.forestDensity)) * denominatorMultiplier;
+						denominator = spMax(denominator, 4);
+						int roll = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 235432, denominator);
+						if(roll == 0)
+						{
+							if(forestInfo.coniferous)
+							{
+								ADD_OBJECT(gameObjectType_pineBranch);
+							}
+
+							if(forestInfo.birch)
+							{
+								ADD_OBJECT(gameObjectType_birchBranch);
+							}
+
+							if(forestInfo.bamboo)
+							{
+								ADD_OBJECT(gameObjectType_bambooBranch);
+							}
+							if(forestInfo.river)
+							{
+								ADD_OBJECT(gameObjectType_willowBranch);
+							}
 						}
 					}
 
