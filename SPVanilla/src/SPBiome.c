@@ -1455,7 +1455,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 4;
 							break;
 						case 4:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 30;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) + 24;
 							break;
 
 						}
@@ -1555,16 +1555,16 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						case 0:
 							break;
 						case 1:
-							treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) == 1 ? 1 : 0);
+							treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 32) == 1 ? 1 : 0);
 							break;
 						case 2:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 6;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) - 14;
 							break;
 						case 3:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 3);
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 6;
 							break;
 						case 4:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 6) + 1;
+							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 2;
 							break;
 
 						}
