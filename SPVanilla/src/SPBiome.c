@@ -1545,46 +1545,55 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								}
 							}
 						}
-					}
 
-					int treeCount = 0;
-					if(forestInfo.coniferous)
-					{
-						switch(forestInfo.forestDensity)
+						if(forestInfo.coniferous || forestInfo.birch)
 						{
-						case 0:
-							break;
-						case 1:
-							treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 32) == 1 ? 1 : 0);
-							break;
-						case 2:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) - 14;
-							break;
-						case 3:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 6;
-							break;
-						case 4:
-							treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 2;
-							break;
+							int treeCount = 0;
+							switch(forestInfo.forestDensity)
+							{
+							case 1:
+								treeCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 32) == 1 ? 1 : 0);
+								break;
+							case 2:
+								treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 16) - 14;
+								break;
+							case 3:
+								treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 6;
+								break;
+							case 4:
+								treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3254, 8) - 2;
+								break;
+							default:
+								break;
+							}
 
+							for(int i = 0; i < treeCount; i++)
+							{
+								bool addPine = (!forestInfo.birch || (forestInfo.coniferous && (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9238 + i, 2) == 0)));
+
+								if(addPine)
+								{
+									ADD_OBJECT(gameObjectType_smallPine);
+								}
+								else
+								{
+									ADD_OBJECT(getBirchType(faceUniqueID, i));
+								}
+							}
 						}
 
-						for(int i = 0; i < treeCount; i++)
+
+						if(forestInfo.bamboo && spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 236604, 6) == 0)
 						{
-							ADD_OBJECT(gameObjectType_smallPine);
+							int treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 91333, 7) + forestInfo.forestDensity + 2;
+
+							for(int i = 0; i < treeCount; i++)
+							{
+								ADD_OBJECT(getBambooType(faceUniqueID, i));
+							}
 						}
 					}
 
-
-					if(forestInfo.bamboo && forestInfo.forestDensity > 0 && spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 236604, 6) == 0)
-					{
-						treeCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 91333, 7) + forestInfo.forestDensity + 2;
-
-						for(int i = 0; i < treeCount; i++)
-						{
-							ADD_OBJECT(getBambooType(faceUniqueID, i));
-						}
-					}
 
 					SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 400.0);
 					double rawValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
