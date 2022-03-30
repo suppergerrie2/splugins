@@ -14,6 +14,8 @@ enum {
 	sp_vanillaEmitterTypeFeathers,
 	sp_vanillaEmitterTypeClouds,
 	sp_vanillaEmitterTypeWaterRipples,
+	sp_vanillaEmitterTypeDig,
+	sp_vanillaEmitterTypePullWeeds,
 };
 
 enum {
@@ -24,13 +26,14 @@ enum {
 	sp_vanillaRenderGroupCloud,
 	sp_vanillaRenderGroupCloudBlended,
 	sp_vanillaRenderGroupWaterRipples,
+	sp_vanillaRenderGroupDust,
 };
 
 
 //define emitter types that we wish to override or add. Vanilla functions and functions for mods with earlier order indexes than this one that override the same type, will not get called.
 //Mods with later order indexes than this mod will win, so it's possible that even though you define behavior in the functions here, those functions may not actually get called..
 
-#define EMITTER_TYPES_COUNT 9
+#define EMITTER_TYPES_COUNT 11
 static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] = {
 	{
 		"campfireLarge",
@@ -68,6 +71,14 @@ static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] =
 		"waterRipples",
 		sp_vanillaEmitterTypeWaterRipples
 	},
+	{
+		"dig",
+		sp_vanillaEmitterTypeDig
+	},
+	{
+		"pullWeeds",
+		sp_vanillaEmitterTypePullWeeds
+	},
 };
 
 //define the vertex attributes that the shader will use. In the vanilla mod, all currently take the same, but this could be different for more complex shaders
@@ -79,7 +90,7 @@ static int vertexDescriptionTypes[VERTEX_ATTRIBUTE_COUNT] = {
 };
 
 //define render groups that we wish to use, override or add. To use an existing/predefined render group, either define again or set vertexDescriptionTypeCount to 0
-#define RENDER_GROUP_TYPES_COUNT 7
+#define RENDER_GROUP_TYPES_COUNT 8
 static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{ 
 		"cloud",
@@ -144,6 +155,16 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{
 		"waterRipples",
 		sp_vanillaRenderGroupWaterRipples,
+		VERTEX_ATTRIBUTE_COUNT,
+		vertexDescriptionTypes,
+		"img/particles.png",
+		NULL,
+		false,
+		false,
+	},
+	{
+		"particle",
+		sp_vanillaRenderGroupDust,
 		VERTEX_ATTRIBUTE_COUNT,
 		vertexDescriptionTypes,
 		"img/particles.png",
@@ -226,25 +247,139 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 		SPVec3 gravity = spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0));
 
 
-		for(int i = 0; i < 32; i++)
+		for(int i = 0; i < 16; i++)
 		{
 			SPParticleState state;
 			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.2));
 			SPVec3 randVelVec = spRandGetVec3(spRand);
 			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
-			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(1.0));
-			state.particleTextureType = 3;
+			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(2.0));
+			state.particleTextureType = 6;
 			state.lifeLeft = 1.0;
 			state.randomValueA = spRandGetValue(spRand);
 			state.gravity = gravity;
+			state.scale = 0.05 + spRandGetValue(spRand) * 0.2;
 
 			(*threadState->addParticle)(threadState->particleManager,
 				emitterState,
 				sp_vanillaRenderGroupStandard,
 				&state);
 		}
+
+		for(int i = 0; i < 8; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.1));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(0.4));
+			state.particleTextureType = 7;
+			state.lifeLeft = 1.0;
+			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+			state.gravity = spVec3Mul(gravity, 0.2);
+			state.scale = 0.5 + spRandGetValue(spRand) * 0.3;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupDust,
+				&state);
+		}
 	}
 		break;
+	case sp_vanillaEmitterTypeDig:
+	{
+		removeImmediately = true;
+		double posLength = spVec3Length(emitterState->p);
+		SPVec3 normalizedPos = spVec3Div(emitterState->p, posLength);
+		SPVec3 gravity = spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0));
+
+
+		for(int i = 0; i < 8; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.2));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(2.6));
+			state.particleTextureType = 6;
+			state.lifeLeft = 1.0;
+			state.randomValueA = spRandGetValue(spRand);
+			state.gravity = gravity;
+			state.scale = 0.02 + spRandGetValue(spRand) * 0.1;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupStandard,
+				&state);
+		}
+
+		for(int i = 0; i < 16; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.1));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(0.8));
+			state.particleTextureType = 7;
+			state.lifeLeft = 1.0;
+			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+			state.gravity = spVec3Mul(gravity, 0.2);
+			state.scale = 1.0 + spRandGetValue(spRand) * 0.3;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupDust,
+				&state);
+		}
+	}
+		break;
+	case sp_vanillaEmitterTypePullWeeds:
+	{
+		removeImmediately = true;
+		double posLength = spVec3Length(emitterState->p);
+		SPVec3 normalizedPos = spVec3Div(emitterState->p, posLength);
+		SPVec3 gravity = spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0));
+
+
+		for(int i = 0; i < 8; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.2));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(2.6));
+			state.particleTextureType = 6;
+			state.lifeLeft = 1.0;
+			state.randomValueA = spRandGetValue(spRand);
+			state.gravity = gravity;
+			state.scale = 0.02 + spRandGetValue(spRand) * 0.1;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupStandard,
+				&state);
+		}
+
+		for(int i = 0; i < 16; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.1));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(0.8));
+			state.particleTextureType = 7;
+			state.lifeLeft = 1.0;
+			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+			state.gravity = spVec3Mul(gravity, 0.2);
+			state.scale = 1.0 + spRandGetValue(spRand) * 0.3;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupDust,
+				&state);
+		}
+	}
+	break;
 	case sp_vanillaEmitterTypeFeathers:
 	{
 		removeImmediately = true;
@@ -850,6 +985,10 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	{
 		lifeLeftMultiplier = 0.5;
 	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDust)
+	{
+		lifeLeftMultiplier = 1.0;
+	}
 
 	double lifeLeft = particleState->lifeLeft - dt * lifeLeftMultiplier;
 
@@ -874,6 +1013,15 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 		particleState->p = spVec3Add(particleState->p, spVec3Mul(vel, dt));
 
 		particleState->scale = particleState->scale + dt * (particleState->lifeLeft * particleState->lifeLeft) * (1.0 + particleState->randomValueA) * 0.15;
+	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDust)
+	{
+		particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.05);
+		particleState->v = spVec3Add(particleState->v, spVec3Mul(particleState->gravity, dt));
+
+		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
+
+		particleState->scale = particleState->scale + dt * (particleState->lifeLeft * particleState->lifeLeft) * (1.0 + particleState->randomValueA) * 0.5;
 	}
 	else
 	{
