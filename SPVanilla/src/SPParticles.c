@@ -16,6 +16,7 @@ enum {
 	sp_vanillaEmitterTypeWaterRipples,
 	sp_vanillaEmitterTypeDig,
 	sp_vanillaEmitterTypePullWeeds,
+	sp_vanillaEmitterTypeDestroy,
 };
 
 enum {
@@ -33,7 +34,7 @@ enum {
 //define emitter types that we wish to override or add. Vanilla functions and functions for mods with earlier order indexes than this one that override the same type, will not get called.
 //Mods with later order indexes than this mod will win, so it's possible that even though you define behavior in the functions here, those functions may not actually get called..
 
-#define EMITTER_TYPES_COUNT 11
+#define EMITTER_TYPES_COUNT 12
 static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] = {
 	{
 		"campfireLarge",
@@ -78,6 +79,10 @@ static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] =
 	{
 		"pullWeeds",
 		sp_vanillaEmitterTypePullWeeds
+	},
+	{
+		"destroy",
+		sp_vanillaEmitterTypeDestroy
 	},
 };
 
@@ -341,13 +346,21 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 		SPVec3 gravity = spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0));
 
 
+		//SPVec3 pullDirectionLocal = {-0.2,2.0,-1.0};
+		SPVec3 pullDirection = spVec3Mul(spMat3GetRow(emitterState->rot, 2), -1.0);
+		pullDirection = spVec3Add(pullDirection, spVec3Mul(spMat3GetRow(emitterState->rot, 0), -1.0)); 
+		pullDirection = spVec3Add(pullDirection, normalizedPos); 
+		pullDirection = spVec3Normalize(pullDirection);
+		//SPVec3 pullDirection = spVec3xMat3(pullDirectionLocal, emitterState->rot);
+		//SPVec3 pullDirection = spMat3GetRow(emitterState->rot, 1);
+
 		for(int i = 0; i < 8; i++)
 		{
 			SPParticleState state;
 			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.2));
-			SPVec3 randVelVec = spRandGetVec3(spRand);
+			SPVec3 randVelVec = spVec3Mul(spRandGetVec3(spRand), 0.5);
 			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
-			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(2.6));
+			state.v = spVec3Mul(spVec3Add(pullDirection, randVelVec), SP_METERS_TO_PRERENDER(2.0));
 			state.particleTextureType = 6;
 			state.lifeLeft = 1.0;
 			state.randomValueA = spRandGetValue(spRand);
@@ -360,18 +373,71 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 				&state);
 		}
 
-		for(int i = 0; i < 16; i++)
+
+		for(int i = 0; i < 8; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.2));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(pullDirection, randVelVec), SP_METERS_TO_PRERENDER(2.0));
+			state.particleTextureType = 10;
+			state.lifeLeft = 1.0;
+			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.2;
+			state.gravity = gravity;
+			state.scale = 0.2 + spRandGetValue(spRand) * 0.4;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupStandard,
+				&state);
+		}
+
+		for(int i = 0; i < 4; i++)
 		{
 			SPParticleState state;
 			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.1));
-			SPVec3 randVelVec = spRandGetVec3(spRand);
+			SPVec3 randVelVec = spVec3Mul(spRandGetVec3(spRand), 0.5);
+
 			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
-			state.v = spVec3Mul(spVec3Add(normalizedPos, randVelVec), SP_METERS_TO_PRERENDER(0.8));
+			state.v = spVec3Mul(spVec3Add(pullDirection, randVelVec), SP_METERS_TO_PRERENDER(1.0));
 			state.particleTextureType = 7;
 			state.lifeLeft = 1.0;
 			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
 			state.gravity = spVec3Mul(gravity, 0.2);
 			state.scale = 1.0 + spRandGetValue(spRand) * 0.3;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupDust,
+				&state);
+		}
+	}
+	break;
+	case sp_vanillaEmitterTypeDestroy:
+	{
+		removeImmediately = true;
+		double posLength = spVec3Length(emitterState->p);
+		SPVec3 normalizedPos = spVec3Div(emitterState->p, posLength);
+		SPVec3 gravity = spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0) * 1.0);
+
+		SPVec3 direction = spMat3GetRow(emitterState->rot, 2);//spVec3Mul(spMat3GetRow(emitterState->rot, 2), 0.5);
+		direction = spVec3Add(direction, normalizedPos); 
+		direction = spVec3Normalize(direction);
+
+		for(int i = 0; i < 20; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(0.3));
+			SPVec3 randVelVec = spRandGetVec3(spRand);
+			state.p = spVec3Add(spVec3Mul(normalizedPos, posLength), randPosVec);
+			state.v = spVec3Mul(spVec3Add(direction, randVelVec), SP_METERS_TO_PRERENDER(1.6));
+			state.particleTextureType = 7;
+			state.lifeLeft = 1.0;
+			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+			state.gravity = gravity;
+			state.scale = 0.5 + spRandGetValue(spRand) * 0.5;
 
 			(*threadState->addParticle)(threadState->particleManager,
 				emitterState,
