@@ -88,6 +88,7 @@ typedef void (* SPUpdateEmitterFunc) (SPParticleThreadState* threadState,
 	double dt);
 
 typedef bool (* SPUpdateParticleFunc) (SPParticleThreadState* threadState, 
+	SPParticleEmitterState* emitterState,
 	SPParticleState* particleState, 
 	uint32_t localRenderGroupTypeID,
 	double dt, 
@@ -114,6 +115,7 @@ MJ_EXPORT void spUpdateEmitter(SPParticleThreadState* threadState,
 	double dt); //called every tick, for the mod to update the state over time
 
 MJ_EXPORT bool spUpdateParticle(SPParticleThreadState* threadState, 
+	SPParticleEmitterState* emitterState,
 	SPParticleState* particleState, 
 	uint32_t localRenderGroupTypeID,
 	double dt, 

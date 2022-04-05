@@ -110,6 +110,7 @@ static uint32_t gameObjectType_gooseberryBush;
 static uint32_t gameObjectType_beetrootPlant;
 static uint32_t gameObjectType_wheatPlant;
 static uint32_t gameObjectType_flaxPlant;
+static uint32_t gameObjectType_pumpkinPlant;
 
 static uint32_t gameObjectType_rock;
 static uint32_t gameObjectType_rockSmall;
@@ -251,6 +252,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_raspberryBush = threadState->getGameObjectTypeIndex(threadState, "raspberryBush");
 		gameObjectType_gooseberryBush = threadState->getGameObjectTypeIndex(threadState, "gooseberryBush");
 		gameObjectType_beetrootPlant = threadState->getGameObjectTypeIndex(threadState, "beetrootPlant");
+		gameObjectType_pumpkinPlant = threadState->getGameObjectTypeIndex(threadState, "pumpkinPlant");
 		gameObjectType_wheatPlant = threadState->getGameObjectTypeIndex(threadState, "wheatPlant");
 		gameObjectType_flaxPlant = threadState->getGameObjectTypeIndex(threadState, "flaxPlant");
 
@@ -1754,6 +1756,17 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 									for(int i = 0; i < rarerObjectCount; i++)
 									{
 										ADD_OBJECT(gameObjectType_flaxPlant);
+									}
+								}
+
+								SPVec3 offsetC = {0.41,0.17,0.13};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
+								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+								if(noiseValue > 0.5)
+								{
+									for(int i = 0; i < rarerObjectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_pumpkinPlant);
 									}
 								}
 							}

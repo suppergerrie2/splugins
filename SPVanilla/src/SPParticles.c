@@ -17,6 +17,7 @@ enum {
 	sp_vanillaEmitterTypeDig,
 	sp_vanillaEmitterTypePullWeeds,
 	sp_vanillaEmitterTypeDestroy,
+	sp_vanillaEmitterTypeDustParticles,
 };
 
 enum {
@@ -28,13 +29,14 @@ enum {
 	sp_vanillaRenderGroupCloudBlended,
 	sp_vanillaRenderGroupWaterRipples,
 	sp_vanillaRenderGroupDust,
+	sp_vanillaRenderGroupDustParticles,
 };
 
 
 //define emitter types that we wish to override or add. Vanilla functions and functions for mods with earlier order indexes than this one that override the same type, will not get called.
 //Mods with later order indexes than this mod will win, so it's possible that even though you define behavior in the functions here, those functions may not actually get called..
 
-#define EMITTER_TYPES_COUNT 12
+#define EMITTER_TYPES_COUNT 13
 static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] = {
 	{
 		"campfireLarge",
@@ -84,6 +86,10 @@ static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] =
 		"destroy",
 		sp_vanillaEmitterTypeDestroy
 	},
+	{
+		"dustParticles",
+		sp_vanillaEmitterTypeDustParticles
+	},
 };
 
 //define the vertex attributes that the shader will use. In the vanilla mod, all currently take the same, but this could be different for more complex shaders
@@ -95,7 +101,7 @@ static int vertexDescriptionTypes[VERTEX_ATTRIBUTE_COUNT] = {
 };
 
 //define render groups that we wish to use, override or add. To use an existing/predefined render group, either define again or set vertexDescriptionTypeCount to 0
-#define RENDER_GROUP_TYPES_COUNT 8
+#define RENDER_GROUP_TYPES_COUNT 9
 static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{ 
 		"cloud",
@@ -170,6 +176,16 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{
 		"particle",
 		sp_vanillaRenderGroupDust,
+		VERTEX_ATTRIBUTE_COUNT,
+		vertexDescriptionTypes,
+		"img/particles.png",
+		NULL,
+		false,
+		false,
+	},
+	{
+		"dustParticle",
+		sp_vanillaRenderGroupDustParticles,
 		VERTEX_ATTRIBUTE_COUNT,
 		vertexDescriptionTypes,
 		"img/particles.png",
@@ -442,6 +458,46 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 			(*threadState->addParticle)(threadState->particleManager,
 				emitterState,
 				sp_vanillaRenderGroupDust,
+				&state);
+		}
+	}
+	break;
+	case sp_vanillaEmitterTypeDustParticles:
+	{
+		double posLength = spVec3Length(emitterState->p);
+		SPVec3 normalizedPos = spVec3Div(emitterState->p, posLength);
+		SPVec3 gravity = {0.0,0.0,0.0};//spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0) * 1.0);
+
+		SPVec3 direction = spMat3GetRow(emitterState->rot, 2);//spVec3Mul(spMat3GetRow(emitterState->rot, 2), 0.5);
+		direction = spVec3Add(direction, normalizedPos); 
+		direction = spVec3Normalize(direction);
+
+		for(int i = 0; i < 100; i++)
+		{
+			SPParticleState state;
+			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(20.0));
+			//SPVec3 randVelVec = {0.0,0.0,0.0};//spRandGetVec3(spRand);
+			SPVec3 pos = spVec3Add(emitterState->p, randPosVec);
+			state.p = pos;
+
+			SPVec3 lookup = {(pos.x + 1.2) * 99999.9, (pos.y * 4.5 + pos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+			SPVec3 lookupB = {(pos.x + 1.4) * 99999.9, (pos.y * 4.6 + pos.z + 2.8) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+			double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
+			double noiseValueB = spNoiseGet(threadState->spNoise, lookupB, 2);
+
+			state.v = spVec3Mul(spMat3GetRow(emitterState->rot, 0), SP_METERS_TO_PRERENDER(noiseValue) * 0.5);
+			state.v = spVec3Add(state.v, spVec3Mul(spMat3GetRow(emitterState->rot, 2), SP_METERS_TO_PRERENDER(noiseValueB) * 0.5));
+
+			//state.v = randVelVec;//spVec3Mul(spVec3Add(direction, randVelVec), SP_METERS_TO_PRERENDER(1.6));
+			state.particleTextureType = 11;
+			state.lifeLeft = 1.0;
+			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+			//state.gravity = gravity;
+			state.scale = 0.2;
+
+			(*threadState->addParticle)(threadState->particleManager,
+				emitterState,
+				sp_vanillaRenderGroupDustParticles,
 				&state);
 		}
 	}
@@ -994,6 +1050,7 @@ static const SPVec2 texCoords[4] = {
 
 
 bool spUpdateParticle(SPParticleThreadState* threadState, 
+	SPParticleEmitterState* emitterState,
 	SPParticleState* particleState, 
 	uint32_t localRenderGroupTypeID,
 	double dt, 
@@ -1033,6 +1090,7 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 		return true;
 	}
 
+
 	double lifeLeftMultiplier = 1.0;
 
 	if(localRenderGroupTypeID == sp_vanillaRenderGroupSmoke)
@@ -1055,6 +1113,10 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	{
 		lifeLeftMultiplier = 1.0;
 	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDustParticles)
+	{
+		lifeLeftMultiplier = 0.0;
+	}
 
 	double lifeLeft = particleState->lifeLeft - dt * lifeLeftMultiplier;
 
@@ -1067,7 +1129,6 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 
 	if(localRenderGroupTypeID == sp_vanillaRenderGroupFire)
 	{
-
 		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, (2.0 - lifeLeft) * dt * 1.5));
 	}
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupSmoke)
@@ -1088,6 +1149,24 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
 
 		particleState->scale = particleState->scale + dt * (particleState->lifeLeft * particleState->lifeLeft) * (1.0 + particleState->randomValueA) * 0.5;
+	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDustParticles)
+	{
+		if(emitterState)
+		{
+			SPVec3 pos = particleState->p;
+
+			SPVec3 lookup = {(pos.x + 1.2) * 99999.9, (pos.y * 4.5 + pos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+			SPVec3 lookupB = {(pos.x + 1.4) * 99999.9, (pos.y * 4.6 + pos.z + 2.8) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+			double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
+			double noiseValueB = spNoiseGet(threadState->spNoise, lookupB, 2);
+
+			particleState->v = spVec3Mul(spMat3GetRow(emitterState->rot, 0), SP_METERS_TO_PRERENDER(noiseValue) * 0.5);
+			particleState->v = spVec3Add(particleState->v, spVec3Mul(spMat3GetRow(emitterState->rot, 2), SP_METERS_TO_PRERENDER(noiseValueB) * 0.5));
+
+			//particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.05);
+			particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
+		}
 	}
 	else
 	{
