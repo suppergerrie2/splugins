@@ -132,8 +132,8 @@ static uint32_t gameObjectType_pineBranch;
 static uint32_t gameObjectType_willowBranch;
 static uint32_t gameObjectType_bambooBranch;
 
-static uint32_t gameObjectType_alpacaWoolskin;
-static uint32_t gameObjectType_mammothWoolskin;
+static uint32_t gameObjectType_deadAlpaca;
+static uint32_t gameObjectType_deadMammoth;
 static uint32_t gameObjectType_bone;
 
 #define BIRCH_TYPE_COUNT 4
@@ -302,8 +302,8 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_bambooTypes[0] = threadState->getGameObjectTypeIndex(threadState, "bamboo1");
 		gameObjectType_smallBamboo = threadState->getGameObjectTypeIndex(threadState, "bamboo2");
 
-		gameObjectType_alpacaWoolskin = threadState->getGameObjectTypeIndex(threadState, "alpacaWoolskin");
-		gameObjectType_mammothWoolskin = threadState->getGameObjectTypeIndex(threadState, "mammothWoolskin");
+		gameObjectType_deadAlpaca = threadState->getGameObjectTypeIndex(threadState, "deadAlpaca");
+		gameObjectType_deadMammoth = threadState->getGameObjectTypeIndex(threadState, "deadMammoth");
 		gameObjectType_bone = threadState->getGameObjectTypeIndex(threadState, "bone");
 	}
 }
@@ -1773,26 +1773,20 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						}
 					}
 
-					int skinCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 62) - 60;
-					if(skinCount > 0)
+					bool addCarcass = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 200) == 1;
+					if(addCarcass == 1)
 					{
-						uint32_t skinType = gameObjectType_alpacaWoolskin;
-						uint32_t randomSkinValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3966, 2);
-						if(randomSkinValue == 0)
+						uint32_t carcassType = gameObjectType_deadAlpaca;
+						uint32_t randomCarcassTypeValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3966, 10);
+						if(randomCarcassTypeValue < 3)
 						{
-							skinType = gameObjectType_mammothWoolskin;
-							skinCount = skinCount + 1;
+							carcassType = gameObjectType_bone;
 						}
-						for(int i = 0; i < skinCount; i++)
+						else if(randomCarcassTypeValue == 3)
 						{
-							ADD_OBJECT(skinType);
+							carcassType = gameObjectType_deadMammoth;
 						}
-
-						int boneCount = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 934, 4);
-						for(int i = 0; i < boneCount; i++)
-						{
-							ADD_OBJECT(gameObjectType_bone);
-						}
+						ADD_OBJECT(carcassType);
 					}
 				}
 				else if(level == SP_SUBDIVISIONS - 2)

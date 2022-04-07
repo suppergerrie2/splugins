@@ -18,6 +18,7 @@ enum {
 	sp_vanillaEmitterTypePullWeeds,
 	sp_vanillaEmitterTypeDestroy,
 	sp_vanillaEmitterTypeDustParticles,
+	sp_vanillaEmitterTypeSnow,
 };
 
 enum {
@@ -30,13 +31,14 @@ enum {
 	sp_vanillaRenderGroupWaterRipples,
 	sp_vanillaRenderGroupDust,
 	sp_vanillaRenderGroupDustParticles,
+	sp_vanillaRenderGroupSnow,
 };
 
 
 //define emitter types that we wish to override or add. Vanilla functions and functions for mods with earlier order indexes than this one that override the same type, will not get called.
 //Mods with later order indexes than this mod will win, so it's possible that even though you define behavior in the functions here, those functions may not actually get called..
 
-#define EMITTER_TYPES_COUNT 13
+#define EMITTER_TYPES_COUNT 14
 static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] = {
 	{
 		"campfireLarge",
@@ -90,6 +92,10 @@ static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] =
 		"dustParticles",
 		sp_vanillaEmitterTypeDustParticles
 	},
+	{
+		"snow",
+		sp_vanillaEmitterTypeSnow
+	},
 };
 
 //define the vertex attributes that the shader will use. In the vanilla mod, all currently take the same, but this could be different for more complex shaders
@@ -101,7 +107,7 @@ static int vertexDescriptionTypes[VERTEX_ATTRIBUTE_COUNT] = {
 };
 
 //define render groups that we wish to use, override or add. To use an existing/predefined render group, either define again or set vertexDescriptionTypeCount to 0
-#define RENDER_GROUP_TYPES_COUNT 9
+#define RENDER_GROUP_TYPES_COUNT 10
 static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{ 
 		"cloud",
@@ -186,6 +192,16 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{
 		"dustParticle",
 		sp_vanillaRenderGroupDustParticles,
+		VERTEX_ATTRIBUTE_COUNT,
+		vertexDescriptionTypes,
+		"img/particles.png",
+		NULL,
+		false,
+		false,
+	},
+	{
+		"dustParticle",
+		sp_vanillaRenderGroupSnow,
 		VERTEX_ATTRIBUTE_COUNT,
 		vertexDescriptionTypes,
 		"img/particles.png",
@@ -867,6 +883,48 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 		}
 		break;
 
+		case sp_vanillaEmitterTypeSnow:
+		{
+			SPVec3 right = spMat3GetRow(emitterState->rot, 0);
+			SPVec3 up = spMat3GetRow(emitterState->rot, 1);
+			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
+
+			SPVec3 zeroVec = {0,0,0};
+			for(int i = 0; i < 200; i++)
+			{
+				SPParticleState state;
+				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+				pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 20.0)));
+				pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+				state.p = pos;
+
+				state.v = zeroVec;
+				for(int frameAxisIndex = 0; frameAxisIndex < 3; frameAxisIndex++)
+				{
+					double windStrength = 10.0;
+					SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.2 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
+					double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
+
+					if(frameAxisIndex == 1) //up/down
+					{
+						noiseValue -= 0.25;
+					}
+					state.v = spVec3Add(state.v, spVec3Mul(spMat3GetRow(emitterState->rot, frameAxisIndex), SP_METERS_TO_PRERENDER(noiseValue * windStrength) * dt));
+				}
+
+				state.particleTextureType = 21;
+				state.lifeLeft = 1.0;
+				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+				state.scale = 0.01;
+
+				(*threadState->addParticle)(threadState->particleManager,
+					emitterState,
+					sp_vanillaRenderGroupSnow,
+					&state);
+			}
+		}
+		break;
+
 		case sp_vanillaEmitterTypeCampfireLarge:
 		case sp_vanillaEmitterTypeCampfireMedium:
 		case sp_vanillaEmitterTypeCampfireSmall:
@@ -1045,6 +1103,46 @@ static const SPVec2 texCoords[4] = {
 	{1.0,0.0},
 };
 
+void constrainToCamera(SPParticleEmitterState* emitterState, SPParticleState* particleState)
+{
+	static const double maxDistance = SP_METERS_TO_PRERENDER(10.0);
+
+	double xDistance = particleState->p.x - emitterState->p.x;
+	double yDistance = particleState->p.y - emitterState->p.y;
+	double zDistance = particleState->p.z - emitterState->p.z;
+
+	if(xDistance > maxDistance)
+	{
+		double difference = fmod(xDistance, maxDistance);
+		particleState->p.x = emitterState->p.x - maxDistance + difference;
+	}
+	else if(xDistance < -maxDistance)
+	{
+		double difference = fmod(-xDistance, maxDistance);
+		particleState->p.x = emitterState->p.x + maxDistance - difference;
+	}
+	if(yDistance > maxDistance)
+	{
+		double difference = fmod(yDistance, maxDistance);
+		particleState->p.y = emitterState->p.y - maxDistance + difference;
+	}
+	else if(yDistance < -maxDistance)
+	{
+		double difference = fmod(-yDistance, maxDistance);
+		particleState->p.y = emitterState->p.y + maxDistance - difference;
+	}
+	if(zDistance > maxDistance)
+	{
+		double difference = fmod(zDistance, maxDistance);
+		particleState->p.z = emitterState->p.z - maxDistance + difference;
+	}
+	else if(zDistance < -maxDistance)
+	{
+		double difference = fmod(-zDistance, maxDistance);
+		particleState->p.z = emitterState->p.z + maxDistance - difference;
+	}
+}
+
 
 bool spUpdateParticle(SPParticleThreadState* threadState, 
 	SPParticleEmitterState* emitterState,
@@ -1114,6 +1212,10 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	{
 		lifeLeftMultiplier = 0.02;
 	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupSnow)
+	{
+		lifeLeftMultiplier = 0.2;
+	}
 
 	double lifeLeft = particleState->lifeLeft - dt * lifeLeftMultiplier;
 
@@ -1167,45 +1269,37 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 
 		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
 
-		static const double maxDistance = SP_METERS_TO_PRERENDER(30.0);
-
-		double xDistance = particleState->p.x - emitterState->p.x;
-		double yDistance = particleState->p.y - emitterState->p.y;
-		double zDistance = particleState->p.z - emitterState->p.z;
-
-		if(xDistance > maxDistance)
-		{
-			double difference = fmod(xDistance, maxDistance);
-			particleState->p.x = emitterState->p.x - maxDistance + difference;
-		}
-		else if(xDistance < -maxDistance)
-		{
-			double difference = fmod(-xDistance, maxDistance);
-			particleState->p.x = emitterState->p.x + maxDistance - difference;
-		}
-		if(yDistance > maxDistance)
-		{
-			double difference = fmod(yDistance, maxDistance);
-			particleState->p.y = emitterState->p.y - maxDistance + difference;
-		}
-		else if(yDistance < -maxDistance)
-		{
-			double difference = fmod(-yDistance, maxDistance);
-			particleState->p.y = emitterState->p.y + maxDistance - difference;
-		}
-		if(zDistance > maxDistance)
-		{
-			double difference = fmod(zDistance, maxDistance);
-			particleState->p.z = emitterState->p.z - maxDistance + difference;
-		}
-		else if(zDistance < -maxDistance)
-		{
-			double difference = fmod(-zDistance, maxDistance);
-			particleState->p.z = emitterState->p.z + maxDistance - difference;
-		}
+		constrainToCamera(emitterState, particleState);
 
 		double rawScale = (1.0 - fabs(particleState->lifeLeft - 0.5) / 0.5);
 		particleState->scale = spMin(rawScale * 2.0, 1.0) * 0.1 * particleState->randomValueA + 0.01;
+	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupSnow)
+	{
+		uint8_t frameAxisIndex = ((int)(particleState->randomValueA * 100 + threadState->frameCounter)) % 27; // add velocity to each axis in a round robbin, so only 1 (expensive) noise lookup is required per particle, per frame
+		if(frameAxisIndex < 3)
+		{
+			SPVec3 pos = particleState->p;
+			double windStrength = 2.0;
+
+			SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.5 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
+			double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
+
+			if(frameAxisIndex == 1) //up/down
+			{
+				noiseValue -= 0.25;
+			}
+
+			particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.2);
+			particleState->v = spVec3Add(particleState->v, spVec3Mul(spMat3GetRow(emitterState->rot, frameAxisIndex), SP_METERS_TO_PRERENDER(noiseValue * windStrength) * dt));
+		}
+
+		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
+
+		constrainToCamera(emitterState, particleState);
+
+		double rawScale = (1.0 - fabs(particleState->lifeLeft - 0.5) / 0.5);
+		particleState->scale = spMin(rawScale * 2.0, 1.0) * 0.05 * particleState->randomValueA + 0.01;
 	}
 	else
 	{
