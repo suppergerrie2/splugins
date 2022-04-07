@@ -854,7 +854,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				state.p = pos;
 
 				state.v = zeroVec;
-				state.particleTextureType = 11;
+				state.particleTextureType = 20;
 				state.lifeLeft = 1.0;
 				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
 				state.scale = 0.01;
