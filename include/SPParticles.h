@@ -31,6 +31,8 @@ typedef struct SPParticleEmitterTypeInfo {
 
 
 typedef struct SPParticleEmitterState {
+	uint32_t globalEmitterID;
+	bool complete;
 	SPVec3 p;
 	SPMat3 rot;
 	double timeAccumulatorA;
@@ -66,6 +68,7 @@ typedef struct SPParticleThreadState {
 	SPNoise* spNoise;
 	SPVec3 playerPos;
 	double worldTime;
+	uint32_t frameCounter;
 } SPParticleThreadState;
 
 typedef int (* SPGetEmitterTypesCountFunc) ();

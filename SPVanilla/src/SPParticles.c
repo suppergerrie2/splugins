@@ -462,46 +462,6 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 		}
 	}
 	break;
-	case sp_vanillaEmitterTypeDustParticles:
-	{
-		double posLength = spVec3Length(emitterState->p);
-		SPVec3 normalizedPos = spVec3Div(emitterState->p, posLength);
-		SPVec3 gravity = {0.0,0.0,0.0};//spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(-10.0) * 1.0);
-
-		SPVec3 direction = spMat3GetRow(emitterState->rot, 2);//spVec3Mul(spMat3GetRow(emitterState->rot, 2), 0.5);
-		direction = spVec3Add(direction, normalizedPos); 
-		direction = spVec3Normalize(direction);
-
-		for(int i = 0; i < 100; i++)
-		{
-			SPParticleState state;
-			SPVec3 randPosVec = spVec3Mul(spRandGetVec3(spRand), SP_METERS_TO_PRERENDER(20.0));
-			//SPVec3 randVelVec = {0.0,0.0,0.0};//spRandGetVec3(spRand);
-			SPVec3 pos = spVec3Add(emitterState->p, randPosVec);
-			state.p = pos;
-
-			SPVec3 lookup = {(pos.x + 1.2) * 99999.9, (pos.y * 4.5 + pos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
-			SPVec3 lookupB = {(pos.x + 1.4) * 99999.9, (pos.y * 4.6 + pos.z + 2.8) * 99999.9, emitterState->timeAccumulatorB * 0.1};
-			double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
-			double noiseValueB = spNoiseGet(threadState->spNoise, lookupB, 2);
-
-			state.v = spVec3Mul(spMat3GetRow(emitterState->rot, 0), SP_METERS_TO_PRERENDER(noiseValue) * 0.5);
-			state.v = spVec3Add(state.v, spVec3Mul(spMat3GetRow(emitterState->rot, 2), SP_METERS_TO_PRERENDER(noiseValueB) * 0.5));
-
-			//state.v = randVelVec;//spVec3Mul(spVec3Add(direction, randVelVec), SP_METERS_TO_PRERENDER(1.6));
-			state.particleTextureType = 11;
-			state.lifeLeft = 1.0;
-			state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
-			//state.gravity = gravity;
-			state.scale = 0.2;
-
-			(*threadState->addParticle)(threadState->particleManager,
-				emitterState,
-				sp_vanillaRenderGroupDustParticles,
-				&state);
-		}
-	}
-	break;
 	case sp_vanillaEmitterTypeFeathers:
 	{
 		removeImmediately = true;
@@ -823,6 +783,12 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 	uint32_t localEmitterTypeID,
 	double dt)
 {
+	// An emitter is marked as complete when it is removed, either by returning removeImmediately from emitterWasAdded, or by being removed manually later. 
+	// It may still have active particles though, and this function will still be called in that case.
+	if(emitterState->complete) 
+	{
+		return;
+	}
 	SPRand* spRand = threadState->spRand;
 
 	emitterState->timeAccumulatorA += dt;
@@ -867,6 +833,37 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				emitterState->counters[0] = 1 + (uint8_t)(8 * (1.0 - noiseValue));
 			}
 			emitterState->counters[0]--;
+		}
+		break;
+
+
+		case sp_vanillaEmitterTypeDustParticles:
+		{
+			SPVec3 right = spMat3GetRow(emitterState->rot, 0);
+			SPVec3 up = spMat3GetRow(emitterState->rot, 1);
+			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
+
+			SPVec3 zeroVec = {0,0,0};
+			for(int i = 0; i < 3; i++)
+			{
+				SPParticleState state;
+				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
+				double randY = spRandGetValue(spRand);
+				pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((randY * randY) * 40.0)));
+				pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
+				state.p = pos;
+
+				state.v = zeroVec;
+				state.particleTextureType = 11;
+				state.lifeLeft = 1.0;
+				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+				state.scale = 0.01;
+
+				(*threadState->addParticle)(threadState->particleManager,
+					emitterState,
+					sp_vanillaRenderGroupDustParticles,
+					&state);
+			}
 		}
 		break;
 
@@ -1115,7 +1112,7 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	}
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDustParticles)
 	{
-		lifeLeftMultiplier = 0.0;
+		lifeLeftMultiplier = 0.02;
 	}
 
 	double lifeLeft = particleState->lifeLeft - dt * lifeLeftMultiplier;
@@ -1152,21 +1149,63 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	}
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDustParticles)
 	{
-		if(emitterState)
+
+		SPVec3 pos = particleState->p;
+
+		uint8_t frameAxisIndex = threadState->frameCounter % 3; // add velocity to each axis in a round robbin, so only 1 (expensive) noise lookup is required per particle, per frame
+		double windStrength = 1.0;
+		if(frameAxisIndex == 1) //up/down
 		{
-			SPVec3 pos = particleState->p;
-
-			SPVec3 lookup = {(pos.x + 1.2) * 99999.9, (pos.y * 4.5 + pos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
-			SPVec3 lookupB = {(pos.x + 1.4) * 99999.9, (pos.y * 4.6 + pos.z + 2.8) * 99999.9, emitterState->timeAccumulatorB * 0.1};
-			double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
-			double noiseValueB = spNoiseGet(threadState->spNoise, lookupB, 2);
-
-			particleState->v = spVec3Mul(spMat3GetRow(emitterState->rot, 0), SP_METERS_TO_PRERENDER(noiseValue) * 0.5);
-			particleState->v = spVec3Add(particleState->v, spVec3Mul(spMat3GetRow(emitterState->rot, 2), SP_METERS_TO_PRERENDER(noiseValueB) * 0.5));
-
-			//particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.05);
-			particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
+			windStrength = 0.3;
 		}
+
+		SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.2 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
+		double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
+
+		particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.2);
+		particleState->v = spVec3Add(particleState->v, spVec3Mul(spMat3GetRow(emitterState->rot, frameAxisIndex), SP_METERS_TO_PRERENDER(noiseValue * windStrength) * dt));
+
+		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
+
+		static const double maxDistance = SP_METERS_TO_PRERENDER(30.0);
+
+		double xDistance = particleState->p.x - emitterState->p.x;
+		double yDistance = particleState->p.y - emitterState->p.y;
+		double zDistance = particleState->p.z - emitterState->p.z;
+
+		if(xDistance > maxDistance)
+		{
+			double difference = fmod(xDistance, maxDistance);
+			particleState->p.x = emitterState->p.x - maxDistance + difference;
+		}
+		else if(xDistance < -maxDistance)
+		{
+			double difference = fmod(-xDistance, maxDistance);
+			particleState->p.x = emitterState->p.x + maxDistance - difference;
+		}
+		if(yDistance > maxDistance)
+		{
+			double difference = fmod(yDistance, maxDistance);
+			particleState->p.y = emitterState->p.y - maxDistance + difference;
+		}
+		else if(yDistance < -maxDistance)
+		{
+			double difference = fmod(-yDistance, maxDistance);
+			particleState->p.y = emitterState->p.y + maxDistance - difference;
+		}
+		if(zDistance > maxDistance)
+		{
+			double difference = fmod(zDistance, maxDistance);
+			particleState->p.z = emitterState->p.z - maxDistance + difference;
+		}
+		else if(zDistance < -maxDistance)
+		{
+			double difference = fmod(-zDistance, maxDistance);
+			particleState->p.z = emitterState->p.z + maxDistance - difference;
+		}
+
+		double rawScale = (1.0 - fabs(particleState->lifeLeft - 0.5) / 0.5);
+		particleState->scale = spMin(rawScale * 2.0, 1.0) * 0.1 * particleState->randomValueA + 0.01;
 	}
 	else
 	{
