@@ -901,7 +901,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				state.v = zeroVec;
 				for(int frameAxisIndex = 0; frameAxisIndex < 3; frameAxisIndex++)
 				{
-					double windStrength = 10.0;
+					double windStrength = 2.0;
 					SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.2 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
 					double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
 
@@ -1280,14 +1280,14 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 		if(frameAxisIndex < 3)
 		{
 			SPVec3 pos = particleState->p;
-			double windStrength = 2.0;
+			double windStrength = 8.0;
 
-			SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.5 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
+			SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 1999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 1999999.9, emitterState->timeAccumulatorB * 0.1 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 1999999.9};
 			double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
 
 			if(frameAxisIndex == 1) //up/down
 			{
-				noiseValue -= 0.25;
+				noiseValue -= 0.5;
 			}
 
 			particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.2);
