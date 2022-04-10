@@ -19,6 +19,7 @@ enum {
 	sp_vanillaEmitterTypeDestroy,
 	sp_vanillaEmitterTypeDustParticles,
 	sp_vanillaEmitterTypeSnow,
+	sp_vanillaEmitterTypeRain,
 };
 
 enum {
@@ -32,13 +33,14 @@ enum {
 	sp_vanillaRenderGroupDust,
 	sp_vanillaRenderGroupDustParticles,
 	sp_vanillaRenderGroupSnow,
+	sp_vanillaRenderGroupRain,
 };
 
 
 //define emitter types that we wish to override or add. Vanilla functions and functions for mods with earlier order indexes than this one that override the same type, will not get called.
 //Mods with later order indexes than this mod will win, so it's possible that even though you define behavior in the functions here, those functions may not actually get called..
 
-#define EMITTER_TYPES_COUNT 14
+#define EMITTER_TYPES_COUNT 15
 static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] = {
 	{
 		"campfireLarge",
@@ -96,6 +98,10 @@ static SPParticleEmitterTypeInfo particleEmitterTypeInfos[EMITTER_TYPES_COUNT] =
 		"snow",
 		sp_vanillaEmitterTypeSnow
 	},
+	{
+		"rain",
+		sp_vanillaEmitterTypeRain
+	},
 };
 
 //define the vertex attributes that the shader will use. In the vanilla mod, all currently take the same, but this could be different for more complex shaders
@@ -107,7 +113,7 @@ static int vertexDescriptionTypes[VERTEX_ATTRIBUTE_COUNT] = {
 };
 
 //define render groups that we wish to use, override or add. To use an existing/predefined render group, either define again or set vertexDescriptionTypeCount to 0
-#define RENDER_GROUP_TYPES_COUNT 10
+#define RENDER_GROUP_TYPES_COUNT 11
 static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{ 
 		"cloud",
@@ -190,7 +196,7 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 		false,
 	},
 	{
-		"dustParticle",
+		"particleWeather",
 		sp_vanillaRenderGroupDustParticles,
 		VERTEX_ATTRIBUTE_COUNT,
 		vertexDescriptionTypes,
@@ -200,8 +206,18 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 		false,
 	},
 	{
-		"dustParticle",
+		"particleWeather",
 		sp_vanillaRenderGroupSnow,
+		VERTEX_ATTRIBUTE_COUNT,
+		vertexDescriptionTypes,
+		"img/particles.png",
+		NULL,
+		false,
+		false,
+	},
+	{
+		"particleRain",
+		sp_vanillaRenderGroupRain,
 		VERTEX_ATTRIBUTE_COUNT,
 		vertexDescriptionTypes,
 		"img/particles.png",
@@ -860,7 +876,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
 			SPVec3 zeroVec = {0,0,0};
-			for(int i = 0; i < 3; i++)
+			for(int i = 0; i < 1; i++)
 			{
 				SPParticleState state;
 				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
@@ -920,6 +936,34 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				(*threadState->addParticle)(threadState->particleManager,
 					emitterState,
 					sp_vanillaRenderGroupSnow,
+					&state);
+			}
+		}
+		break;
+
+		case sp_vanillaEmitterTypeRain:
+		{
+			SPVec3 right = spMat3GetRow(emitterState->rot, 0);
+			SPVec3 up = spMat3GetRow(emitterState->rot, 1);
+			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
+
+			for(int i = 0; i < 200; i++)
+			{
+				SPParticleState state;
+				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+				pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 20.0)));
+				pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+				state.p = pos;
+
+				state.v = spVec3Mul(up, SP_METERS_TO_PRERENDER(-10.0));
+
+				state.lifeLeft = 1.0;
+				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+				state.scale = 0.01;
+
+				(*threadState->addParticle)(threadState->particleManager,
+					emitterState,
+					sp_vanillaRenderGroupRain,
 					&state);
 			}
 		}
@@ -1210,7 +1254,7 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	}
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupDustParticles)
 	{
-		lifeLeftMultiplier = 0.02;
+		lifeLeftMultiplier = 0.05;
 	}
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupSnow)
 	{
@@ -1300,6 +1344,11 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 
 		double rawScale = (1.0 - fabs(particleState->lifeLeft - 0.5) / 0.5);
 		particleState->scale = spMin(rawScale * 2.0, 1.0) * 0.05 * particleState->randomValueA + 0.01;
+	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupRain)
+	{
+		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
+		constrainToCamera(emitterState, particleState);
 	}
 	else
 	{
