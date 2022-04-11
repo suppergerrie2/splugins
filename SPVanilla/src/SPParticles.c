@@ -34,6 +34,7 @@ enum {
 	sp_vanillaRenderGroupDustParticles,
 	sp_vanillaRenderGroupSnow,
 	sp_vanillaRenderGroupRain,
+	sp_vanillaRenderGroupRainBounce,
 };
 
 
@@ -113,7 +114,7 @@ static int vertexDescriptionTypes[VERTEX_ATTRIBUTE_COUNT] = {
 };
 
 //define render groups that we wish to use, override or add. To use an existing/predefined render group, either define again or set vertexDescriptionTypeCount to 0
-#define RENDER_GROUP_TYPES_COUNT 11
+#define RENDER_GROUP_TYPES_COUNT 12
 static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 	{ 
 		"cloud",
@@ -225,6 +226,16 @@ static SPParticleRenderGroupInfo renderGroupInfos[RENDER_GROUP_TYPES_COUNT] = {
 		false,
 		false,
 	},
+	{
+		"particleRainBounce",
+		sp_vanillaRenderGroupRainBounce,
+		VERTEX_ATTRIBUTE_COUNT,
+		vertexDescriptionTypes,
+		"img/particles.png",
+		NULL,
+		false,
+		false,
+	},
 };
 
 int spGetEmitterTypesCount()
@@ -287,6 +298,7 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 	case sp_vanillaEmitterTypeTorchLarge:
 	case sp_vanillaEmitterTypeTorchSmall:
 	case sp_vanillaEmitterTypeWaterRipples:
+	case sp_vanillaEmitterTypeRain:
 	{
 	
 	}
@@ -754,8 +766,6 @@ bool spEmitterWasAdded(SPParticleThreadState* threadState,
 		}
 	}
 	break;
-
-		break;
 	}
 
 	if(!removeImmediately)
@@ -943,28 +953,41 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 
 		case sp_vanillaEmitterTypeRain:
 		{
-			SPVec3 right = spMat3GetRow(emitterState->rot, 0);
-			SPVec3 up = spMat3GetRow(emitterState->rot, 1);
-			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
-
-			for(int i = 0; i < 200; i++)
+			if(emitterState->userData.x > 0.0)
 			{
-				SPParticleState state;
-				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
-				pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 20.0)));
-				pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
-				state.p = pos;
+				SPVec3 right = spMat3GetRow(emitterState->rot, 0);
+				SPVec3 up = spMat3GetRow(emitterState->rot, 1);
+				SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
-				state.v = spVec3Mul(up, SP_METERS_TO_PRERENDER(-10.0));
+				for(int i = 0; i < 200 * emitterState->userData.x; i++)
+				{
+					SPParticleState state;
+					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 20.0)));
+					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+					state.p = pos;
 
-				state.lifeLeft = 1.0;
-				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
-				state.scale = 0.01;
+					state.v = spVec3Mul(up, SP_METERS_TO_PRERENDER(-10.0));
 
-				(*threadState->addParticle)(threadState->particleManager,
-					emitterState,
-					sp_vanillaRenderGroupRain,
-					&state);
+					double randValue = spRandGetValue(spRand);
+					state.lifeLeft = 1.0;
+					state.randomValueA = 0.5 + (randValue - 0.5) * 0.3;
+					state.scale = 0.01;
+
+					(*threadState->addParticle)(threadState->particleManager,
+						emitterState,
+						sp_vanillaRenderGroupRain,
+						&state);
+
+
+					state.particleTextureType = 22;
+					state.scale = 0.02 + 0.02 * randValue;
+
+					(*threadState->addParticle)(threadState->particleManager,
+						emitterState,
+						sp_vanillaRenderGroupRainBounce,
+						&state);
+				}
 			}
 		}
 		break;
@@ -1260,6 +1283,10 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	{
 		lifeLeftMultiplier = 0.2;
 	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupRainBounce)
+	{
+		lifeLeftMultiplier = 5.0;
+	}
 
 	double lifeLeft = particleState->lifeLeft - dt * lifeLeftMultiplier;
 
@@ -1349,6 +1376,9 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	{
 		particleState->p = spVec3Add(particleState->p, spVec3Mul(particleState->v, dt));
 		constrainToCamera(emitterState, particleState);
+	}
+	else if(localRenderGroupTypeID == sp_vanillaRenderGroupRainBounce)
+	{
 	}
 	else
 	{
