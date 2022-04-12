@@ -916,7 +916,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
 			SPVec3 zeroVec = {0,0,0};
-			for(int i = 0; i < 200; i++)
+			for(int i = 0; i < 200 * emitterState->userData.x; i++)
 			{
 				SPParticleState state;
 				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
