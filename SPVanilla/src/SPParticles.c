@@ -881,72 +881,78 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 
 		case sp_vanillaEmitterTypeDustParticles:
 		{
-			SPVec3 right = spMat3GetRow(emitterState->rot, 0);
-			SPVec3 up = spMat3GetRow(emitterState->rot, 1);
-			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
-
-			SPVec3 zeroVec = {0,0,0};
-			for(int i = 0; i < 1; i++)
+			if(emitterState->userData.x > 0.1)
 			{
-				SPParticleState state;
-				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
-				double randY = spRandGetValue(spRand);
-				pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((randY * randY) * 40.0)));
-				pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
-				state.p = pos;
+				SPVec3 right = spMat3GetRow(emitterState->rot, 0);
+				SPVec3 up = spMat3GetRow(emitterState->rot, 1);
+				SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
-				state.v = zeroVec;
-				state.particleTextureType = 20;
-				state.lifeLeft = 1.0;
-				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
-				state.scale = 0.01;
+				SPVec3 zeroVec = {0,0,0};
+				for(int i = 0; i < 1; i++)
+				{
+					SPParticleState state;
+					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
+					double randY = spRandGetValue(spRand);
+					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((randY * randY) * 40.0)));
+					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
+					state.p = pos;
 
-				(*threadState->addParticle)(threadState->particleManager,
-					emitterState,
-					sp_vanillaRenderGroupDustParticles,
-					&state);
+					state.v = zeroVec;
+					state.particleTextureType = 20;
+					state.lifeLeft = 1.0;
+					state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+					state.scale = 0.01;
+
+					(*threadState->addParticle)(threadState->particleManager,
+						emitterState,
+						sp_vanillaRenderGroupDustParticles,
+						&state);
+				}
 			}
 		}
 		break;
 
 		case sp_vanillaEmitterTypeSnow:
 		{
-			SPVec3 right = spMat3GetRow(emitterState->rot, 0);
-			SPVec3 up = spMat3GetRow(emitterState->rot, 1);
-			SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
-
-			SPVec3 zeroVec = {0,0,0};
-			for(int i = 0; i < 200 * emitterState->userData.x; i++)
+			if(emitterState->userData.x > 0.0)
 			{
-				SPParticleState state;
-				SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
-				pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 20.0)));
-				pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
-				state.p = pos;
+				SPVec3 right = spMat3GetRow(emitterState->rot, 0);
+				SPVec3 up = spMat3GetRow(emitterState->rot, 1);
+				SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
-				state.v = zeroVec;
-				for(int frameAxisIndex = 0; frameAxisIndex < 3; frameAxisIndex++)
+				SPVec3 zeroVec = {0,0,0};
+				for(int i = 0; i < 200 * emitterState->userData.x; i++)
 				{
-					double windStrength = 2.0;
-					SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.2 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
-					double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
+					SPParticleState state;
+					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 10.0)));
+					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 10.0)));
+					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 10.0)));
+					state.p = pos;
 
-					if(frameAxisIndex == 1) //up/down
+					state.v = zeroVec;
+					for(int frameAxisIndex = 0; frameAxisIndex < 3; frameAxisIndex++)
 					{
-						noiseValue -= 0.25;
+						double windStrength = 2.0;
+						SPVec3 lookup = {(pos.x + 1.2 + 0.1 * frameAxisIndex) * 999999.9, (pos.y + 1.1 + 0.1 * frameAxisIndex) * 999999.9, emitterState->timeAccumulatorB * 0.2 + (pos.z + 1.1 + 0.1 * frameAxisIndex) * 999999.9};
+						double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
+
+						if(frameAxisIndex == 1) //up/down
+						{
+							noiseValue -= 0.25;
+						}
+						state.v = spVec3Add(state.v, spVec3Mul(spMat3GetRow(emitterState->rot, frameAxisIndex), SP_METERS_TO_PRERENDER(noiseValue * windStrength) * dt));
 					}
-					state.v = spVec3Add(state.v, spVec3Mul(spMat3GetRow(emitterState->rot, frameAxisIndex), SP_METERS_TO_PRERENDER(noiseValue * windStrength) * dt));
+
+					state.particleTextureType = 21;
+					state.lifeLeft = 1.0;
+					state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
+					state.scale = 0.01;
+
+					(*threadState->addParticle)(threadState->particleManager,
+						emitterState,
+						sp_vanillaRenderGroupSnow,
+						&state);
 				}
-
-				state.particleTextureType = 21;
-				state.lifeLeft = 1.0;
-				state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
-				state.scale = 0.01;
-
-				(*threadState->addParticle)(threadState->particleManager,
-					emitterState,
-					sp_vanillaRenderGroupSnow,
-					&state);
 			}
 		}
 		break;
