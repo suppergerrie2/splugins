@@ -921,12 +921,12 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
 				SPVec3 zeroVec = {0,0,0};
-				for(int i = 0; i < 200 * emitterState->userData.x; i++)
+				for(int i = 0; i < 100 * emitterState->userData.x; i++)
 				{
 					SPParticleState state;
-					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 10.0)));
+					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
 					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 10.0)));
-					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 10.0)));
+					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
 					state.p = pos;
 
 					state.v = zeroVec;
@@ -946,7 +946,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 					state.particleTextureType = 21;
 					state.lifeLeft = 1.0;
 					state.randomValueA = 0.5 + (spRandGetValue(spRand) - 0.5) * 0.3;
-					state.scale = 0.01;
+					state.scale = 0.05;
 
 					(*threadState->addParticle)(threadState->particleManager,
 						emitterState,
@@ -965,7 +965,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				SPVec3 up = spMat3GetRow(emitterState->rot, 1);
 				SPVec3 forward = spMat3GetRow(emitterState->rot, 2);
 
-				for(int i = 0; i < 200 * emitterState->userData.x; i++)
+				for(int i = 0; i < 100 * emitterState->userData.x; i++)
 				{
 					SPParticleState state;
 					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
@@ -1178,7 +1178,7 @@ static const SPVec2 texCoords[4] = {
 
 void constrainToCamera(SPParticleEmitterState* emitterState, SPParticleState* particleState)
 {
-	static const double maxDistance = SP_METERS_TO_PRERENDER(10.0);
+	static const double maxDistance = SP_METERS_TO_PRERENDER(8.0);
 
 	double xDistance = particleState->p.x - emitterState->p.x;
 	double yDistance = particleState->p.y - emitterState->p.y;
@@ -1376,7 +1376,7 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 		constrainToCamera(emitterState, particleState);
 
 		double rawScale = (1.0 - fabs(particleState->lifeLeft - 0.5) / 0.5);
-		particleState->scale = spMin(rawScale * 2.0, 1.0) * 0.05 * particleState->randomValueA + 0.01;
+		particleState->scale = spMin(rawScale * 2.0, 1.0) * 0.05 * particleState->randomValueA + 0.05;
 	}
 	else if(localRenderGroupTypeID == sp_vanillaRenderGroupRain)
 	{
