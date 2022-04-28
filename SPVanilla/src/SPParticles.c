@@ -924,9 +924,9 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				for(int i = 0; i < 100 * emitterState->userData.x; i++)
 				{
 					SPParticleState state;
-					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
-					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 10.0)));
-					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
+					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.1) * 30.0)));
+					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
 					state.p = pos;
 
 					state.v = zeroVec;
@@ -968,9 +968,9 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 				for(int i = 0; i < 100 * emitterState->userData.x; i++)
 				{
 					SPParticleState state;
-					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
-					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 20.0)));
-					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 20.0)));
+					SPVec3 pos = spVec3Add(emitterState->p, spVec3Mul(right, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
+					pos = spVec3Add(pos, spVec3Mul(up, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.05) * 40.0)));
+					pos = spVec3Add(pos, spVec3Mul(forward, SP_METERS_TO_PRERENDER((spRandGetValue(spRand) - 0.5) * 40.0)));
 					state.p = pos;
 
 					state.v = spVec3Mul(up, SP_METERS_TO_PRERENDER(-10.0));
@@ -1178,7 +1178,7 @@ static const SPVec2 texCoords[4] = {
 
 void constrainToCamera(SPParticleEmitterState* emitterState, SPParticleState* particleState)
 {
-	static const double maxDistance = SP_METERS_TO_PRERENDER(8.0);
+	static const double maxDistance = SP_METERS_TO_PRERENDER(16.0);
 
 	double xDistance = particleState->p.x - emitterState->p.x;
 	double yDistance = particleState->p.y - emitterState->p.y;
