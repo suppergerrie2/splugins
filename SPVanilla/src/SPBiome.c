@@ -1751,7 +1751,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 										ADD_OBJECT(gameObjectType_wheatPlant);
 									}
 								}
-								else if(noiseValue < -0.5)
+								else if(noiseValue < -0.3)
 								{
 									for(int i = 0; i < rarerObjectCount; i++)
 									{
@@ -1773,16 +1773,16 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						}
 					}
 
-					bool addCarcass = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 200) == 1;
+					bool addCarcass = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 73958, 400) == 1;
 					if(addCarcass == 1)
 					{
 						uint32_t carcassType = gameObjectType_deadAlpaca;
-						uint32_t randomCarcassTypeValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3966, 10);
-						if(randomCarcassTypeValue < 3)
+						uint32_t randomCarcassTypeValue = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 3966, 20);
+						if(randomCarcassTypeValue < 6)
 						{
 							carcassType = gameObjectType_bone;
 						}
-						else if(randomCarcassTypeValue == 3)
+						else if(randomCarcassTypeValue == 6)
 						{
 							carcassType = gameObjectType_deadMammoth;
 						}
