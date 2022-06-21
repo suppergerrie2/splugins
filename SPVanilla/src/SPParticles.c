@@ -1053,8 +1053,8 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 
 				state.v = spVec3Mul(normalizedPos, SP_METERS_TO_PRERENDER(0.9 + noiseValueC) * 0.7);
 
-				state.gravity = spVec3Mul(spMat3GetRow(emitterState->rot, 0), SP_METERS_TO_PRERENDER(noiseValue) * 0.5);
-				state.gravity = spVec3Add(state.gravity, spVec3Mul(spMat3GetRow(emitterState->rot, 2), SP_METERS_TO_PRERENDER(noiseValueB) * 0.5));
+				state.gravity = spVec3Mul(spMat3GetRow(emitterState->rot, 0), SP_METERS_TO_PRERENDER(noiseValue) * 2.5);
+				state.gravity = spVec3Add(state.gravity, spVec3Mul(spMat3GetRow(emitterState->rot, 2), SP_METERS_TO_PRERENDER(noiseValueB) * 2.5));
 
 				(*threadState->addParticle)(threadState->particleManager,
 					emitterState,
@@ -1319,7 +1319,7 @@ bool spUpdateParticle(SPParticleThreadState* threadState,
 	{
 		particleState->v = spVec3Mul(particleState->v, 1.0 - dt * 0.05);
 
-		SPVec3 vel = spVec3Add(particleState->v, particleState->gravity); //gravity is wind
+		SPVec3 vel = spVec3Add(particleState->v, spVec3Mul(particleState->gravity, (1.0 - particleState->lifeLeft))); //gravity is wind
 
 		particleState->p = spVec3Add(particleState->p, spVec3Mul(vel, dt));
 
