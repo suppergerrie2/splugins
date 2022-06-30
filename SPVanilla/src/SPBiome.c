@@ -1700,73 +1700,83 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 
 						if(objectCount > 0)
 						{
-							SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 129.0);
-							double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
-
-							if(noiseValue > 0.5)
+							double soilRichnessNoiseValue = getSoilRichnessNoiseValue(threadState, noiseLoc, steepness, riverDistance);
+							if(soilRichnessNoiseValue < 0.0)
 							{
-								//if(temperate)
+								objectCount = objectCount + soilRichnessNoiseValue * 10.0;
+							}
+							
+
+							if(objectCount > 0)
+							{
+								SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 129.0);
+								double noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+
+								if(noiseValue > 0.5)
+								{
+									//if(temperate)
+									{
+										for(int i = 0; i < objectCount; i++)
+										{
+											ADD_OBJECT(gameObjectType_sunflower);
+										}
+									}
+								}
+								else if(noiseValue < -0.5)
 								{
 									for(int i = 0; i < objectCount; i++)
 									{
-										ADD_OBJECT(gameObjectType_sunflower);
+										ADD_OBJECT(gameObjectType_raspberryBush);
 									}
 								}
-							}
-							else if(noiseValue < -0.5)
-							{
-								for(int i = 0; i < objectCount; i++)
-								{
-									ADD_OBJECT(gameObjectType_raspberryBush);
-								}
-							}
-							SPVec3 offset = {0.2,0.1,0.3};
-							scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offset), 124.2);
-							noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-							if(noiseValue > 0.5)
-							{
-								for(int i = 0; i < objectCount; i++)
-								{
-									ADD_OBJECT(gameObjectType_gooseberryBush);
-								}
-							}
-							else if(noiseValue < -0.5)
-							{
-								for(int i = 0; i < objectCount; i++)
-								{
-									ADD_OBJECT(gameObjectType_beetrootPlant);
-								}
-							}
-
-							int rarerObjectCount = objectCount;// / 3;
-							if(rarerObjectCount > 0)
-							{
-								SPVec3 offsetB = {0.6,0.22,0.5};
-								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
+								SPVec3 offset = {0.2,0.1,0.3};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offset), 124.2);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
 								if(noiseValue > 0.5)
 								{
-									for(int i = 0; i < rarerObjectCount; i++)
+									for(int i = 0; i < objectCount; i++)
 									{
-										ADD_OBJECT(gameObjectType_wheatPlant);
+										ADD_OBJECT(gameObjectType_gooseberryBush);
 									}
 								}
-								else if(noiseValue < -0.3)
+								else if(noiseValue < -0.5)
 								{
-									for(int i = 0; i < rarerObjectCount; i++)
+									for(int i = 0; i < objectCount; i++)
 									{
-										ADD_OBJECT(gameObjectType_flaxPlant);
+										ADD_OBJECT(gameObjectType_beetrootPlant);
 									}
 								}
 
-								SPVec3 offsetC = {0.41,0.17,0.13};
-								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
-								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-								if(noiseValue > 0.5)
+								int rarerObjectCount = objectCount;// / 3;
+								if(rarerObjectCount > 0)
 								{
-									for(int i = 0; i < rarerObjectCount; i++)
+									SPVec3 offsetB = {0.6,0.22,0.5};
+									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
+									noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+									if(noiseValue > 0.5)
 									{
-										ADD_OBJECT(gameObjectType_pumpkinPlant);
+										for(int i = 0; i < rarerObjectCount; i++)
+										{
+											ADD_OBJECT(gameObjectType_wheatPlant);
+										}
+									}
+									else if(noiseValue < -0.3)
+									{
+										for(int i = 0; i < rarerObjectCount; i++)
+										{
+											ADD_OBJECT(gameObjectType_flaxPlant);
+										}
+									}
+
+									SPVec3 offsetC = {0.41,0.17,0.13};
+									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
+									noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+									if(noiseValue > 0.5)
+									{
+										for(int i = 0; i < rarerObjectCount; i++)
+										{
+											ADD_OBJECT(gameObjectType_pumpkinPlant);
+										}
 									}
 								}
 							}
