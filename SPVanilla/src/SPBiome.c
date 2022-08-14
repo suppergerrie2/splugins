@@ -1609,7 +1609,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						rangedFractionValue += 0.5;
 					}
 
-					int addBoulderCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 83637, 60) - 58 + 5 * rangedFractionValue);
+					int addBoulderCount = (((int)spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 83637, 60)) - 58 + 5 * rangedFractionValue);
 					if(addBoulderCount > 0)
 					{
 						uint32_t rockType = gameObjectType_rockLarge;

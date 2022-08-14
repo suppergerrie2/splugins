@@ -250,8 +250,8 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../../../include\"";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../../../../lib\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../../include\"";
+				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../../../lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -266,8 +266,8 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../../../include\"";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../../../../lib\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../../include\"";
+				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../../../lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
