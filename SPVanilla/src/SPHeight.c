@@ -83,8 +83,8 @@ SPVec4 spHeightGet(SPVec4 previousHeight, //if spReplacesPreviousHeight returns 
 
 	value *= TERRAIN_HEIGHT_MAXISH;
 
-	SPVec3 riverDistanceNoiseBase = {riverValue * 100.0, 0.34, 0.45};
-	double valleyDistanceAtLowAltitudesMultiplier = fabs(spNoiseGet(noise1, riverDistanceNoiseBase, 3));
+	//SPVec3 riverDistanceNoiseBase = {riverValue * 100.0, 0.34, 0.45};
+	double valleyDistanceAtLowAltitudesMultiplier = 0.0;//fabs(spNoiseGet(noise1, riverDistanceNoiseBase, 3)); //early access shipped with a bug here using abs instead of fabs, so this would always have been zero.
 	riverDistance = riverDistance * (1.0 + spSmoothStep(1.0, 0.0, 0.4 + valleyDistanceAtLowAltitudesMultiplier + value * 10000.0) * 50.0);
 	riverDistance = spMin(riverDistance, 1.0);
 
