@@ -113,6 +113,8 @@ static uint32_t gameObjectType_flaxPlant;
 static uint32_t gameObjectType_pumpkinPlant;
 static uint32_t gameObjectType_poppyPlant;
 static uint32_t gameObjectType_gingerPlant;
+static uint32_t gameObjectType_marigoldPlant;
+static uint32_t gameObjectType_garlicPlant;
 
 static uint32_t gameObjectType_rock;
 static uint32_t gameObjectType_rockSmall;
@@ -258,7 +260,9 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_wheatPlant = threadState->getGameObjectTypeIndex(threadState, "wheatPlant");
 		gameObjectType_flaxPlant = threadState->getGameObjectTypeIndex(threadState, "flaxPlant");
 		gameObjectType_poppyPlant = threadState->getGameObjectTypeIndex(threadState, "poppyPlant");
+		gameObjectType_marigoldPlant = threadState->getGameObjectTypeIndex(threadState, "marigoldPlant");
 		gameObjectType_gingerPlant = threadState->getGameObjectTypeIndex(threadState, "gingerPlant");
+		gameObjectType_garlicPlant = threadState->getGameObjectTypeIndex(threadState, "garlicPlant");
 
 		gameObjectType_rock = threadState->getGameObjectTypeIndex(threadState, "rock");
 		gameObjectType_rockSmall = threadState->getGameObjectTypeIndex(threadState, "rockSmall");
@@ -1771,6 +1775,13 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 											ADD_OBJECT(gameObjectType_flaxPlant);
 										}
 									}
+									else if(noiseValue > -0.01 && noiseValue < 0.01)
+									{
+										for(int i = 0; i < spMax(rarerObjectCount / 2, 1); i++)
+										{
+											ADD_OBJECT(gameObjectType_garlicPlant);
+										}
+									}
 
 									SPVec3 offsetC = {0.41,0.17,0.13};
 									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
@@ -1782,7 +1793,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 											ADD_OBJECT(gameObjectType_pumpkinPlant);
 										}
 									}
-									else if(noiseValue < -0.5)
+									else if(noiseValue < -0.6)
 									{
 										for(int i = 0; i < rarerObjectCount; i++)
 										{
@@ -1794,11 +1805,18 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 									SPVec3 offsetD = {0.53,0.48,0.72};
 									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 142.3);
 									noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-									if(noiseValue > 0.5)
+									if(noiseValue > 0.6)
 									{
 										for(int i = 0; i < rarerObjectCount; i++)
 										{
 											ADD_OBJECT(gameObjectType_gingerPlant);
+										}
+									}
+									else if(noiseValue < -0.6)
+									{
+										for(int i = 0; i < rarerObjectCount; i++)
+										{
+											ADD_OBJECT(gameObjectType_marigoldPlant);
 										}
 									}
 								}
