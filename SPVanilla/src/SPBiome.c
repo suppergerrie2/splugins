@@ -96,6 +96,7 @@ static uint32_t terrainModifcation_preventGrassAndSnow;
 static uint32_t gameObjectType_appleTree;
 static uint32_t gameObjectType_orangeTree;
 static uint32_t gameObjectType_peachTree;
+static uint32_t gameObjectType_elderberryTree;
 static uint32_t gameObjectType_tallPine;
 static uint32_t gameObjectType_pineBig1;
 static uint32_t gameObjectType_aspenBig1;
@@ -112,9 +113,12 @@ static uint32_t gameObjectType_wheatPlant;
 static uint32_t gameObjectType_flaxPlant;
 static uint32_t gameObjectType_pumpkinPlant;
 static uint32_t gameObjectType_poppyPlant;
+static uint32_t gameObjectType_echinaceaPlant;
 static uint32_t gameObjectType_gingerPlant;
+static uint32_t gameObjectType_turmericPlant;
 static uint32_t gameObjectType_marigoldPlant;
 static uint32_t gameObjectType_garlicPlant;
+static uint32_t gameObjectType_aloePlant;
 
 static uint32_t gameObjectType_rock;
 static uint32_t gameObjectType_rockSmall;
@@ -248,6 +252,7 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_appleTree = threadState->getGameObjectTypeIndex(threadState, "appleTree");
 		gameObjectType_orangeTree = threadState->getGameObjectTypeIndex(threadState, "orangeTree");
 		gameObjectType_peachTree = threadState->getGameObjectTypeIndex(threadState, "peachTree");
+		gameObjectType_elderberryTree = threadState->getGameObjectTypeIndex(threadState, "elderberryTree");
 		//gameObjectType_aspen3 = threadState->getGameObjectTypeIndex(threadState, "aspen3");
 		gameObjectType_bananaTree = threadState->getGameObjectTypeIndex(threadState, "bananaTree");
 		gameObjectType_coconutTree = threadState->getGameObjectTypeIndex(threadState, "coconutTree");
@@ -260,8 +265,11 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 		gameObjectType_wheatPlant = threadState->getGameObjectTypeIndex(threadState, "wheatPlant");
 		gameObjectType_flaxPlant = threadState->getGameObjectTypeIndex(threadState, "flaxPlant");
 		gameObjectType_poppyPlant = threadState->getGameObjectTypeIndex(threadState, "poppyPlant");
+		gameObjectType_aloePlant = threadState->getGameObjectTypeIndex(threadState, "aloePlant");
+		gameObjectType_echinaceaPlant = threadState->getGameObjectTypeIndex(threadState, "echinaceaPlant");
 		gameObjectType_marigoldPlant = threadState->getGameObjectTypeIndex(threadState, "marigoldPlant");
 		gameObjectType_gingerPlant = threadState->getGameObjectTypeIndex(threadState, "gingerPlant");
+		gameObjectType_turmericPlant = threadState->getGameObjectTypeIndex(threadState, "turmericPlant");
 		gameObjectType_garlicPlant = threadState->getGameObjectTypeIndex(threadState, "garlicPlant");
 
 		gameObjectType_rock = threadState->getGameObjectTypeIndex(threadState, "rock");
@@ -1541,6 +1549,21 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 							}
 						}
 
+						SPVec3 offsetB = {0.32,0.67,0.31};
+						scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 587.3);
+						noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+						if(noiseValue > 0.6)
+						{
+							uint32_t treeObjectType = gameObjectType_elderberryTree;
+
+							int objectCount = (spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID, 9235, 18) - 6);
+							for(int i = 0; i < objectCount; i++)
+							{
+
+								ADD_OBJECT(treeObjectType);
+							}
+						}
+
 						if(forestInfo.tropical)
 						{
 							SPVec3 scaledNoiseLoc = spVec3Mul(noiseLookup, 762.0);
@@ -1737,6 +1760,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 										ADD_OBJECT(gameObjectType_raspberryBush);
 									}
 								}
+
 								SPVec3 offset = {0.2,0.1,0.3};
 								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offset), 124.2);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
@@ -1754,70 +1778,87 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 										ADD_OBJECT(gameObjectType_beetrootPlant);
 									}
 								}
-
-								int rarerObjectCount = objectCount;// / 3;
-								if(rarerObjectCount > 0)
+								else if(noiseValue > -0.01 && noiseValue < 0.01)
 								{
-									SPVec3 offsetB = {0.6,0.22,0.5};
-									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
-									noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-									if(noiseValue > 0.5)
+									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
 									{
-										for(int i = 0; i < rarerObjectCount; i++)
-										{
-											ADD_OBJECT(gameObjectType_wheatPlant);
-										}
+										ADD_OBJECT(gameObjectType_aloePlant);
 									}
-									else if(noiseValue < -0.3)
-									{
-										for(int i = 0; i < rarerObjectCount; i++)
-										{
-											ADD_OBJECT(gameObjectType_flaxPlant);
-										}
-									}
-									else if(noiseValue > -0.01 && noiseValue < 0.01)
-									{
-										for(int i = 0; i < spMax(rarerObjectCount / 2, 1); i++)
-										{
-											ADD_OBJECT(gameObjectType_garlicPlant);
-										}
-									}
+								}
 
-									SPVec3 offsetC = {0.41,0.17,0.13};
-									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
-									noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-									if(noiseValue > 0.5)
+								SPVec3 offsetB = {0.6,0.22,0.5};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
+								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+								if(noiseValue > 0.5)
+								{
+									for(int i = 0; i < objectCount; i++)
 									{
-										for(int i = 0; i < rarerObjectCount; i++)
-										{
-											ADD_OBJECT(gameObjectType_pumpkinPlant);
-										}
+										ADD_OBJECT(gameObjectType_wheatPlant);
 									}
-									else if(noiseValue < -0.6)
+								}
+								else if(noiseValue < -0.3)
+								{
+									for(int i = 0; i < objectCount; i++)
 									{
-										for(int i = 0; i < rarerObjectCount; i++)
-										{
-											ADD_OBJECT(gameObjectType_poppyPlant);
-										}
+										ADD_OBJECT(gameObjectType_flaxPlant);
 									}
+								}
+								else if(noiseValue > -0.01 && noiseValue < 0.01)
+								{
+									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
+									{
+										ADD_OBJECT(gameObjectType_garlicPlant);
+									}
+								}
+
+								SPVec3 offsetC = {0.41,0.17,0.13};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
+								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+								if(noiseValue > 0.5)
+								{
+									for(int i = 0; i < objectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_pumpkinPlant);
+									}
+								}
+								else if(noiseValue < -0.6)
+								{
+									for(int i = 0; i < objectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_poppyPlant);
+									}
+								}
+								else if(noiseValue > -0.01 && noiseValue < 0.01)
+								{
+									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
+									{
+										ADD_OBJECT(gameObjectType_echinaceaPlant);
+									}
+								}
 
 
-									SPVec3 offsetD = {0.53,0.48,0.72};
-									scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 142.3);
-									noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-									if(noiseValue > 0.6)
+								SPVec3 offsetD = {0.53,0.48,0.72};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 142.3);
+								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+								if(noiseValue > 0.6)
+								{
+									for(int i = 0; i < objectCount; i++)
 									{
-										for(int i = 0; i < rarerObjectCount; i++)
-										{
-											ADD_OBJECT(gameObjectType_gingerPlant);
-										}
+										ADD_OBJECT(gameObjectType_gingerPlant);
 									}
-									else if(noiseValue < -0.6)
+								}
+								else if(noiseValue < -0.6)
+								{
+									for(int i = 0; i < objectCount; i++)
 									{
-										for(int i = 0; i < rarerObjectCount; i++)
-										{
-											ADD_OBJECT(gameObjectType_marigoldPlant);
-										}
+										ADD_OBJECT(gameObjectType_marigoldPlant);
+									}
+								}
+								else if(noiseValue > -0.005 && noiseValue < 0.005)
+								{
+									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
+									{
+										ADD_OBJECT(gameObjectType_turmericPlant);
 									}
 								}
 							}
