@@ -1550,7 +1550,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 						}
 
 						SPVec3 offsetB = {0.32,0.67,0.31};
-						scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 587.3);
+						scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 245.3);
 						noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
 						if(noiseValue > 0.6)
 						{
@@ -1778,13 +1778,6 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 										ADD_OBJECT(gameObjectType_beetrootPlant);
 									}
 								}
-								else if(noiseValue > -0.01 && noiseValue < 0.01)
-								{
-									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
-									{
-										ADD_OBJECT(gameObjectType_aloePlant);
-									}
-								}
 
 								SPVec3 offsetB = {0.6,0.22,0.5};
 								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetB), 134.7);
@@ -1803,13 +1796,6 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 										ADD_OBJECT(gameObjectType_flaxPlant);
 									}
 								}
-								else if(noiseValue > -0.01 && noiseValue < 0.01)
-								{
-									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
-									{
-										ADD_OBJECT(gameObjectType_garlicPlant);
-									}
-								}
 
 								SPVec3 offsetC = {0.41,0.17,0.13};
 								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetC), 121.2);
@@ -1821,24 +1807,10 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 										ADD_OBJECT(gameObjectType_pumpkinPlant);
 									}
 								}
-								else if(noiseValue < -0.6)
-								{
-									for(int i = 0; i < objectCount; i++)
-									{
-										ADD_OBJECT(gameObjectType_poppyPlant);
-									}
-								}
-								else if(noiseValue > -0.01 && noiseValue < 0.01)
-								{
-									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
-									{
-										ADD_OBJECT(gameObjectType_echinaceaPlant);
-									}
-								}
 
 
 								SPVec3 offsetD = {0.53,0.48,0.72};
-								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 142.3);
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 52.3);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
 								if(noiseValue > 0.6)
 								{
@@ -1856,9 +1828,39 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								}
 								else if(noiseValue > -0.005 && noiseValue < 0.005)
 								{
+									int randomTypeIndex = spRandomIntegerValueForUniqueIDAndSeed(faceUniqueID & 0xFFFFFFFFFFC00000, 1756, 3);
+									uint32_t typeToAdd = gameObjectType_turmericPlant;
+									if(randomTypeIndex == 1)
+									{
+										typeToAdd = gameObjectType_echinaceaPlant;
+									}
+									else if(randomTypeIndex == 2)
+									{
+										typeToAdd = gameObjectType_garlicPlant;
+									}
+									
 									for(int i = 0; i < spMax(objectCount / 2, 1); i++)
 									{
-										ADD_OBJECT(gameObjectType_turmericPlant);
+										ADD_OBJECT(typeToAdd);
+									}
+								}
+
+
+								SPVec3 offsetE = {0.26,0.59,0.88};
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 49.3);
+								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
+								if(noiseValue > 0.6)
+								{
+									for(int i = 0; i < objectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_aloePlant);
+									}
+								}
+								else if(noiseValue < -0.6)
+								{
+									for(int i = 0; i < objectCount; i++)
+									{
+										ADD_OBJECT(gameObjectType_poppyPlant);
 									}
 								}
 							}
