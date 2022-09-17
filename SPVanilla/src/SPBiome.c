@@ -1849,11 +1849,14 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								SPVec3 offsetE = {0.26,0.59,0.88};
 								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 49.3);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-								if(noiseValue > 0.6)
+								if(noiseValue > 0.5)
 								{
-									for(int i = 0; i < objectCount; i++)
+									if(soilRichnessNoiseValue < 0.0)
 									{
-										ADD_OBJECT(gameObjectType_aloePlant);
+										for(int i = 0; i < objectCount; i++)
+										{
+											ADD_OBJECT(gameObjectType_aloePlant);
+										}
 									}
 								}
 								else if(noiseValue < -0.6)
