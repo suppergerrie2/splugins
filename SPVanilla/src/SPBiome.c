@@ -1810,7 +1810,7 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 
 
 								SPVec3 offsetD = {0.53,0.48,0.72};
-								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 52.3);
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 72.3);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
 								if(noiseValue > 0.6)
 								{
@@ -1847,11 +1847,22 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 
 
 								SPVec3 offsetE = {0.26,0.59,0.88};
-								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 49.3);
+								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 79.3);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
 								if(noiseValue > 0.5)
 								{
-									if(soilRichnessNoiseValue < 0.0)
+									bool addAloe = (soilRichnessNoiseValue < 0.0);
+									if(!addAloe)
+									{
+										double rawValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2);
+										double rangedFractionValue = rawValue * rawValue * 8.0;
+										if(riverDistance < (rawValue * 0.01 + 0.005))
+										{
+											addAloe = true;
+										}
+									}
+
+									if(addAloe)
 									{
 										for(int i = 0; i < objectCount; i++)
 										{
