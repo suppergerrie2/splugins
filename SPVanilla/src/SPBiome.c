@@ -90,7 +90,6 @@ static uint32_t terrainVariation_deepWater;
 
 static uint32_t terrainModifcation_snowRemoved;
 static uint32_t terrainModifcation_vegetationRemoved;
-static uint32_t terrainModifcation_vegetationAdded;
 static uint32_t terrainModifcation_preventGrassAndSnow;
 
 static uint32_t gameObjectType_appleTree;
@@ -244,7 +243,6 @@ void spBiomeInit(SPBiomeThreadState* threadState)
 
 	terrainModifcation_snowRemoved							= threadState->getTerrainModification(threadState, "snowRemoved");
 	terrainModifcation_vegetationRemoved					= threadState->getTerrainModification(threadState, "vegetationRemoved");
-	terrainModifcation_vegetationAdded						= threadState->getTerrainModification(threadState, "vegetationAdded");
 	terrainModifcation_preventGrassAndSnow					= threadState->getTerrainModification(threadState, "preventGrassAndSnow");
 
 	if(threadState->getGameObjectTypeIndex) //this function isn't set where game object types aren't required eg. in the initial world creation screen
