@@ -1810,14 +1810,14 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								SPVec3 offsetD = {0.53,0.48,0.72};
 								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 72.3);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-								if(noiseValue > 0.6)
+								if(noiseValue > 0.55)
 								{
 									for(int i = 0; i < objectCount; i++)
 									{
 										ADD_OBJECT(gameObjectType_gingerPlant);
 									}
 								}
-								else if(noiseValue < -0.6)
+								else if(noiseValue < -0.55)
 								{
 									for(int i = 0; i < objectCount; i++)
 									{
@@ -1847,14 +1847,14 @@ int spBiomeGetTransientGameObjectTypesForFaceSubdivision(SPBiomeThreadState* thr
 								SPVec3 offsetE = {0.26,0.59,0.88};
 								scaledNoiseLoc = spVec3Mul(spVec3Add(noiseLookup, offsetD), 79.3);
 								noiseValue = spNoiseGet(threadState->spNoise1, scaledNoiseLoc, 2); 
-								if(noiseValue > 0.6)
+								if(noiseValue > 0.55)
 								{
 									for(int i = 0; i < objectCount; i++)
 									{
 										ADD_OBJECT(gameObjectType_aloePlant);
 									}
 								}
-								else if(noiseValue < -0.6)
+								else if(noiseValue < -0.55)
 								{
 									for(int i = 0; i < objectCount; i++)
 									{
