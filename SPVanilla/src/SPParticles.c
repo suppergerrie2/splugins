@@ -320,7 +320,7 @@ void addClouds(SPParticleThreadState* threadState,
 				SPVec3 offsetVec = spVec3Add(normalizedPos, pos);
 				SPVec3 posNormal = spVec3Normalize(offsetVec);
 
-				SPVec3 lookup = {(posNormal.x + 1.2) * 100.9, (posNormal.y + 0.3) * 100.9, (posNormal.z + 2.4)  * 100.9 + threadState->worldTime * cloudWorldTimeInfluence};
+				SPVec3 lookup = {(posNormal.x + 1.2) * 100.9, (posNormal.y + 1.3) * 100.9, (posNormal.z + 2.4)  * 100.9 + threadState->worldTime * cloudWorldTimeInfluence};
 				double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
 
 				if(noiseValue > 0.0)
@@ -430,7 +430,7 @@ void addClouds(SPParticleThreadState* threadState,
 				SPVec3 offsetVec = spVec3Add(normalizedPos, pos);
 				SPVec3 posNormal = spVec3Normalize(offsetVec);
 
-				SPVec3 lookup = {(posNormal.x + 1.7) * 100.9, (posNormal.y + 0.6) * 100.9, (posNormal.z + 1.2)  * 100.9 + threadState->worldTime * cloudWorldTimeInfluence};
+				SPVec3 lookup = {(posNormal.x + 1.7) * 100.9, (posNormal.y + 1.6) * 100.9, (posNormal.z + 1.2)  * 100.9 + threadState->worldTime * cloudWorldTimeInfluence};
 				double noiseValue = spNoiseGet(threadState->spNoise, lookup, 1);
 
 				if(noiseValue > 0.2)
@@ -485,7 +485,7 @@ void addClouds(SPParticleThreadState* threadState,
 				SPVec3 offsetVec = spVec3Add(normalizedPos, pos);
 				SPVec3 posNormal = spVec3Normalize(offsetVec);
 
-				SPVec3 lookup = {(posNormal.x + 1.2) * 100.9, (posNormal.y + 0.3) * 100.9, (posNormal.z + 2.4)  * 100.9 + threadState->worldTime * cloudWorldTimeInfluence};
+				SPVec3 lookup = {(posNormal.x + 1.2) * 100.9, (posNormal.y + 1.3) * 100.9, (posNormal.z + 2.4)  * 100.9 + threadState->worldTime * cloudWorldTimeInfluence};
 				double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
 
 				if(noiseValue > 0.0)
@@ -878,7 +878,7 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 					sp_vanillaRenderGroupWaterRipples,
 					&state);
 
-				SPVec3 lookup = {(normalizedPos.x + 1.2) * 99999.9, (normalizedPos.y * 4.5 + normalizedPos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+				SPVec3 lookup = {(normalizedPos.x + 1.2) * 99999.9, ((normalizedPos.y + 1.2) * 4.5 + normalizedPos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
 				double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
 				emitterState->counters[0] = 1 + (uint8_t)(8 * (1.0 - noiseValue));
 			}
@@ -1044,9 +1044,9 @@ void spUpdateEmitter(SPParticleThreadState* threadState,
 					state.randomValueB += 8.0;
 					//state.scale = state.scale * 0.5;
 				}
-				SPVec3 lookup = {(normalizedPos.x + 1.2) * 99999.9, (normalizedPos.y * 4.5 + normalizedPos.z + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
-				SPVec3 lookupB = {(normalizedPos.x + 1.4) * 99999.9, (normalizedPos.y * 4.6 + normalizedPos.z + 2.8) * 99999.9, emitterState->timeAccumulatorB * 0.1};
-				SPVec3 lookupC = {(normalizedPos.x + 1.8) * 99999.9, (normalizedPos.y * 4.8 + normalizedPos.z + 2.9) * 99999.9, emitterState->timeAccumulatorB * 0.5};
+				SPVec3 lookup = {(normalizedPos.x + 1.2) * 99999.9, ((normalizedPos.y + 1.2) * 4.5 + (normalizedPos.z + 1.2) + 2.4) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+				SPVec3 lookupB = {(normalizedPos.x + 1.4) * 99999.9, ((normalizedPos.y + 1.2) * 4.6 + (normalizedPos.z + 1.2) + 2.8) * 99999.9, emitterState->timeAccumulatorB * 0.1};
+				SPVec3 lookupC = {(normalizedPos.x + 1.8) * 99999.9, ((normalizedPos.y + 1.2) * 4.8 + (normalizedPos.z + 1.2) + 2.9) * 99999.9, emitterState->timeAccumulatorB * 0.5};
 				double noiseValue = spNoiseGet(threadState->spNoise, lookup, 2);
 				double noiseValueB = spNoiseGet(threadState->spNoise, lookupB, 2);
 				double noiseValueC = spNoiseGet(threadState->spNoise, lookupC, 2);
