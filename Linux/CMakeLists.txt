@@ -6,6 +6,7 @@ add_library(SPCommon SHARED
     ../src/SPMath.c
     ../src/SPNoise.c
     ../src/SPRand.c
+    ../src/SPLog.c
 )
 
 set(CMAKE_BUILD_TYPE Release)
